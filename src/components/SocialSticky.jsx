@@ -29,9 +29,9 @@ export default function SocialSticky() {
   }, []);
 
   const icons = [
-    { icon: <FaFacebookF size={20} />, link: 'https://facebook.com' },
-    { icon: <FaTiktok size={20} />, link: 'https://tiktok.com' },
-    { icon: <FaInstagram size={20} />, link: 'https://instagram.com' },
+    { icon: <FaFacebookF size={20} />, link: 'https://www.facebook.com/promediapty' },
+    { icon: <FaTiktok size={20} />, link: 'https://tiktok.com/@promediapublicidadpty' },
+    { icon: <FaInstagram size={20} />, link: 'https://www.instagram.com/promediapty/?hl=es' },
   ];
 
   const base =
