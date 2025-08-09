@@ -33,8 +33,9 @@ export default function Nosotros() {
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
+        {/* Aquí quitamos /public */}
         <img
-          src="/src/assets/nosotros.jpg" // <-- cámbialo si usas otro nombre/ruta
+          src="/nosotros.jpg"
           alt="Imagen institucional"
           className="w-full max-w-md mx-auto"
         />

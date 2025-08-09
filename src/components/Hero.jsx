@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 
 export default function Hero() {
   return (
-    <section id = "hero"  className="relative h-screen w-full overflow-hidden bg-black text-white">
+    <section id="hero" className="relative h-screen w-full overflow-hidden bg-black text-white">
 
       {/* Video de fondo */}
       <video
@@ -12,7 +12,8 @@ export default function Hero() {
         muted
         playsInline
       >
-        <source src="/src/assets/hero-video.mp4" type="video/mp4" />
+        {/* Quitar /public de la ruta */}
+        <source src="/hero-video.mp4" type="video/mp4" />
         Tu navegador no soporta video HTML5.
       </video>
 

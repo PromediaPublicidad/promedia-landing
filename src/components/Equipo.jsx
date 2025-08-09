@@ -5,7 +5,7 @@ import TitleSweep from '../components/TitleSweep';
 const team = [...Array(10)].map((_, i) => ({
   name: `Nombre ${i + 1}`,
   role: `Cargo ${i + 1}`,
-  img: `/src/assets/team${i + 1}.png`,
+  img: `/team/team${i + 1}.png`,
 }));
 
 export default function Equipo() {

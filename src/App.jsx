@@ -31,7 +31,7 @@ function App() {
     <>
       {/* Logo flotante animado */}
       <motion.img
-  src={logoScrolled ? '/src/assets/logo-dark.png' : '/src/assets/logo.png'}
+  src={logoScrolled ? '/logos/logo-dark.png' : '/logos/logo.png'}
   alt="Logo Promedia"
   className="fixed z-50 top-0 left-1/2 -translate-x-1/2"
   animate={{
