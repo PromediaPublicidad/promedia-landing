@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Header({ logoScrolled }) {
   const [open, setOpen] = useState(false);
 
+  // Bloquear scroll al abrir menú (iOS friendly)
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => (document.body.style.overflow = "");
@@ -14,7 +15,7 @@ export default function Header({ logoScrolled }) {
 
   return (
     <header
-      className={`transition-all duration-500 fixed top-0 w-full z-40 ${
+      className={`transition-all duration-500 fixed top-0 w-full ${open ? "z-[999]" : "z-40"} ${
         logoScrolled
           ? "bg-white/90 backdrop-blur-md shadow-md py-3"
           : "bg-transparent py-6"
@@ -45,9 +46,9 @@ export default function Header({ logoScrolled }) {
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop (cubre toda la pantalla en iOS con h-dvh) */}
             <motion.div
-              className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+              className="fixed inset-0 h-dvh bg-black/50 z-[998] lg:hidden overscroll-contain"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -56,15 +57,16 @@ export default function Header({ logoScrolled }) {
 
             {/* Panel teal, contenido blanco */}
             <motion.aside
-              className="fixed right-0 top-0 h-full w-72 max-w-[80%] z-[60] lg:hidden
-                         bg-[#167c88] shadow-xl flex flex-col"
+              className="fixed right-0 top-0 h-dvh w-72 max-w-[80%] z-[999] lg:hidden
+                         bg-[#167c88] shadow-xl flex flex-col overscroll-contain"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "tween", duration: 0.25 }}
             >
               {/* Header del panel */}
-              <div className="flex items-center justify-between px-4 py-4 text-white shrink-0">
+              <div className="flex items-center justify-between px-4 py-4 text-white shrink-0"
+                   style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}>
                 <span className="font-semibold tracking-wide uppercase">Menú</span>
                 <button
                   aria-label="Cerrar menú"
