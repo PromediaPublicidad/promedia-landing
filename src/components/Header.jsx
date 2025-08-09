@@ -55,7 +55,7 @@ export default function Header({ logoScrolled }) {
               onClick={() => setOpen(false)}
             />
 
-            {/* Panel con fondo teal y texto blanco */}
+            {/* Panel: mantiene el teal de fondo, pero el CONTENIDO va blanco */}
             <motion.aside
               className="fixed right-0 top-0 h-full w-72 max-w-[80%] z-[60] lg:hidden
                          bg-[#167c88] text-white shadow-xl"
@@ -64,6 +64,7 @@ export default function Header({ logoScrolled }) {
               exit={{ x: "100%" }}
               transition={{ type: "tween", duration: 0.25 }}
             >
+              {/* Encabezado del panel (teal) */}
               <div className="flex items-center justify-between px-4 py-4">
                 <span className="font-semibold tracking-wide uppercase">
                   Menú
@@ -79,17 +80,32 @@ export default function Header({ logoScrolled }) {
                 </button>
               </div>
 
-              <nav className="mt-2 divide-y divide-white/15">
-                <a href="#servicios" className={`${linkClass}`} onClick={() => setOpen(false)}>
-                  Servicios
-                </a>
-                <a href="#conocenos" className={`${linkClass}`} onClick={() => setOpen(false)}>
-                  Conócenos
-                </a>
-                <a href="#contacto" className={`${linkClass}`} onClick={() => setOpen(false)}>
-                  Contáctanos
-                </a>
-              </nav>
+              {/* Contenido del menú: fondo BLANCO + texto #167c88 */}
+              <div className="mt-2 bg-white text-[#167c88] h-[calc(100%-64px)] overflow-y-auto">
+                <nav className="divide-y divide-[#167c88]/15">
+                  <a
+                    href="#servicios"
+                    className={`${linkClass} hover:bg-[#167c88]/5`}
+                    onClick={() => setOpen(false)}
+                  >
+                    Servicios
+                  </a>
+                  <a
+                    href="#conocenos"
+                    className={`${linkClass} hover:bg-[#167c88]/5`}
+                    onClick={() => setOpen(false)}
+                  >
+                    Conócenos
+                  </a>
+                  <a
+                    href="#contacto"
+                    className={`${linkClass} hover:bg-[#167c88]/5`}
+                    onClick={() => setOpen(false)}
+                  >
+                    Contáctanos
+                  </a>
+                </nav>
+              </div>
             </motion.aside>
           </>
         )}
