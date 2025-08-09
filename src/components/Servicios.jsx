@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 const servicios = [
   { icon: '🧠', title: 'Branding & Diseño', desc: 'Diseño de piezas gráficas publicitarias.' },
   { icon: '🖨️', title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.' },
-  { icon: '🏗️', title: 'Producción Visual', desc: 'Displays, habladores y estructuras visuales.' },
+  { icon: '🎥', title: 'Producción Visual', desc: 'Displays, habladores y estructuras visuales.' },
   { icon: '🧾', title: 'Digital & Offset', desc: 'Alta calidad en diferentes formatos.' },
   { icon: '📦', title: 'Impresión sobre rígidos', desc: 'PVC, foamboard, acrílicos.' },
   { icon: '👕', title: 'Estampados térmicos', desc: 'Textiles y materiales rígidos.' },
