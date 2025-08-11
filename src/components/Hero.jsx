@@ -12,7 +12,6 @@ export default function Hero() {
         muted
         playsInline
       >
-        {/* Quitar /public de la ruta */}
         <source src="/hero-video.mp4" type="video/mp4" />
         Tu navegador no soporta video HTML5.
       </video>
@@ -56,6 +55,20 @@ export default function Hero() {
         >
           Diseño, producción, impresión y estrategia visual que hace que tu marca hable por sí sola.
         </motion.p>
+
+        {/* Botón WhatsApp */}
+        <motion.a
+          href="https://wa.me/50760000000?text=Hola%20quiero%20saber%20más%20información%20sobre%20Promedia" 
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-8 inline-block bg-[#167c88] text-white px-6 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-[#125f66] transition-colors"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          viewport={{ once: true }}
+        >
+          Quiero saber más información
+        </motion.a>
       </div>
     </section>
   );
