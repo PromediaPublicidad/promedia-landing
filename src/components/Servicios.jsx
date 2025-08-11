@@ -1,7 +1,10 @@
-'use client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
+
+// Ajustes rápidos para no chocar con la barra lateral de iconos
+// Si tu barra está a la IZQUIERDA, deja xl:pl-[96px].
+// Si está a la DERECHA, cambia por xl:pr-[96px].
 
 const servicios = [
   { icon: <Palette size={28} />, title: 'Branding & Diseño', desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
@@ -23,9 +26,7 @@ export default function Servicios() {
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
 
   useEffect(() => {
-    function onKey(e){
-      if(e.key === 'Escape') setLightbox({ slug: null, index: null });
-    }
+    function onKey(e){ if(e.key === 'Escape') setLightbox({ slug: null, index: null }); }
     document.addEventListener('keydown', onKey);
 
     const body = document.body;
@@ -34,10 +35,7 @@ export default function Servicios() {
       const prev = body.style.overflow;
       body.style.overflow = 'hidden';
       setTimeout(() => closeBtnRef.current && closeBtnRef.current.focus(), 50);
-      return () => {
-        body.style.overflow = prev;
-        document.removeEventListener('keydown', onKey);
-      };
+      return () => { body.style.overflow = prev; document.removeEventListener('keydown', onKey); };
     }
     return () => document.removeEventListener('keydown', onKey);
   }, [lightbox]);
@@ -45,21 +43,26 @@ export default function Servicios() {
   const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
 
   return (
-    <section id="servicios" className="relative bg-[#0f1f25] py-24 px-6 md:px-10">
+    <section
+      id="servicios"
+      className="relative bg-[#0f1f25] py-24 px-6 md:px-10 xl:pl-[96px] 2xl:pl-[112px]"
+    >
+      {/* Fondo decorativo sutil */}
       <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]">
         <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-[#167c88]/10 blur-3xl"/>
         <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"/>
       </div>
 
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto relative z-10">
         <div className="text-center mb-12">
           <h3 className="text-4xl font-bold mb-4 text-[#167c88]">Nuestros Servicios</h3>
           <p className="text-lg text-white/90">Soluciones gráficas integrales que combinan creatividad, técnica y estrategia.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          {/* Lista izquierda (sticky) */}
           <aside className="md:col-span-4 lg:col-span-4">
-            <div className="md:sticky md:top-24 space-y-3">
+            <div className="md:sticky md:top-28 space-y-3 z-10">
               {servicios.map((s, i) => {
                 const isActive = s.slug === active;
                 return (
@@ -77,7 +80,9 @@ export default function Servicios() {
                       isActive ? 'border-[#167c88] ring-1 ring-[#167c88]/40' : 'border-white/10 hover:border-white/25'
                     ].join(' ')}
                   >
-                    <span className="text-[#167c88] transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_#167c88]">{s.icon}</span>
+                    <span className="text-[#167c88] transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_#167c88]">
+                      {s.icon}
+                    </span>
                     <span>
                       <span className="block text-white font-semibold">{s.title}</span>
                       <span className="block text-white/75 text-sm">{s.desc}</span>
@@ -88,6 +93,7 @@ export default function Servicios() {
             </div>
           </aside>
 
+          {/* Detalle + galería */}
           <div className="md:col-span-8 lg:col-span-8">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
@@ -104,6 +110,7 @@ export default function Servicios() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Hero */}
               <button
                 onClick={() => setLightbox({ slug: active, index: 0 })}
                 className="group relative aspect-[16/10] w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
@@ -115,9 +122,12 @@ export default function Servicios() {
                   className="h-full w-full object-cover transition scale-100 group-hover:scale-[1.02]"
                   onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
                 />
-                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/50 to-transparent text-white text-sm">Vista principal</div>
+                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/50 to-transparent text-white text-sm">
+                  Vista principal
+                </div>
               </button>
 
+              {/* Mini grid */}
               <div className="grid grid-cols-2 gap-4">
                 {imgs.slice(1).map((src, idx) => (
                   <button
@@ -137,23 +147,26 @@ export default function Servicios() {
               </div>
             </div>
 
-            <p className="text-white/60 text-sm mt-3">Coloca tus imágenes en <code className="text-white/80">/public/services/{active}/1.jpg ... 5.jpg</code></p>
+            <p className="text-white/60 text-sm mt-3">
+              Coloca tus imágenes en <code className="text-white/80">/public/services/{active}/1.jpg ... 5.jpg</code>
+            </p>
           </div>
         </div>
       </div>
 
+      {/* Lightbox con z-index alto para pasar por encima de la barra lateral */}
       <AnimatePresence>
         {lightbox.slug && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setLightbox({ slug: null, index: null })}
             />
             <motion.div
-              className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+              className="fixed inset-0 z-[210] flex items-center justify-center p-4"
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.98 }}
