@@ -58,7 +58,7 @@ export default function Hero() {
 
         {/* Botón WhatsApp */}
         <motion.a
-          href="https://wa.me/50760000000?text=Hola%20quiero%20saber%20más%20información%20sobre%20Promedia" 
+          href="https://wa.me/50768940670?text=Hola%20quiero%20saber%20más%20información%20sobre%20Promedia" 
           target="_blank"
           rel="noopener noreferrer"
           className="mt-8 inline-block bg-[#167c88] text-white px-6 py-3 rounded-full font-semibold text-lg shadow-lg hover:bg-[#125f66] transition-colors"
