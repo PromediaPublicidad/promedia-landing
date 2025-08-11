@@ -1,22 +1,72 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
+import {
+  Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target,
+  CheckCircle2, Timer
+} from 'lucide-react';
 
-// Ajustes rápidos para no chocar con la barra lateral de iconos
-// Si tu barra está a la IZQUIERDA, deja xl:pl-[96px].
-// Si está a la DERECHA, cambia por xl:pr-[96px].
-
+// Ajuste lateral según tu barra:
+// Izquierda => xl:pl-[96px] | Derecha => xl:pr-[96px]
 const servicios = [
-  { icon: <Palette size={28} />, title: 'Branding & Diseño', desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
-  { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.', slug: 'gigantografia' },
-  { icon: <Building2 size={28} />, title: 'Producción Visual', desc: 'Displays, habladores y estructuras.', slug: 'produccion-visual' },
-  { icon: <FileText size={28} />, title: 'Digital & Offset', desc: 'Alta calidad en distintos formatos.', slug: 'digital-offset' },
-  { icon: <Package size={28} />, title: 'Impresión sobre rígidos', desc: 'PVC, foamboard, acrílicos.', slug: 'rigidos' },
-  { icon: <Shirt size={28} />, title: 'Estampados térmicos', desc: 'Textiles y materiales rígidos.', slug: 'estampados' },
-  { icon: <Rocket size={28} />, title: 'Activaciones BTL', desc: 'Azafatas, modelos y eventos.', slug: 'btl' },
-  { icon: <Smartphone size={28} />, title: 'Redes Sociales', desc: 'Gestión de contenido y estrategia.', slug: 'redes' },
-  { icon: <Target size={28} />, title: 'Soluciones Personalizadas', desc: 'A tu medida.', slug: 'personalizados' },
+  { icon: <Palette size={28} />, title: 'Branding & Diseño',        desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
+  { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
+  { icon: <Building2 size={28} />, title: 'Producción Visual',      desc: 'Displays, habladores y estructuras.',     slug: 'produccion-visual' },
+  { icon: <FileText size={28} />, title: 'Digital & Offset',        desc: 'Alta calidad en distintos formatos.',     slug: 'digital-offset' },
+  { icon: <Package size={28} />, title: 'Impresión sobre rígidos',  desc: 'PVC, foamboard, acrílicos.',              slug: 'rigidos' },
+  { icon: <Shirt size={28} />,   title: 'Estampados térmicos',      desc: 'Textiles y materiales rígidos.',          slug: 'estampados' },
+  { icon: <Rocket size={28} />,  title: 'Activaciones BTL',         desc: 'Azafatas, modelos y eventos.',            slug: 'btl' },
+  { icon: <Smartphone size={28} />, title: 'Redes Sociales',        desc: 'Gestión de contenido y estrategia.',      slug: 'redes' },
+  { icon: <Target size={28} />,  title: 'Soluciones Personalizadas',desc: 'A tu medida.',                             slug: 'personalizados' },
 ];
+
+// Metadatos por servicio para relleno bajo la galería (sin PDF)
+const meta = {
+  branding: {
+    incluye: ['Moodboard y paleta', 'Guía tipográfica', 'Aplicaciones base para redes'],
+    tags: ['Logo', 'Manual', 'Papelería', 'Plantillas'],
+    entrega: '5–7 días hábiles'
+  },
+  gigantografia: {
+    incluye: ['Impresión HD', 'Protección UV', 'Corte a medida'],
+    tags: ['Lona', 'Vinilo', 'Gran Formato', 'Roll-up'],
+    entrega: '24–72 h'
+  },
+  'produccion-visual': {
+    incluye: ['Estructuras livianas', 'Displays y habladores', 'Instalación opcional'],
+    tags: ['Display', 'Habladores', 'Stands', 'Backings'],
+    entrega: '3–5 días hábiles'
+  },
+  'digital-offset': {
+    incluye: ['Tinta premium', 'Corte y doblez', 'Control de color'],
+    tags: ['Volantes', 'Tarjetas', 'Catálogos', 'Revistas'],
+    entrega: '24–72 h'
+  },
+  rigidos: {
+    incluye: ['Impresión directa UV', 'Acabado mate/brillo', 'Perforado opcional'],
+    tags: ['PVC', 'Foamboard', 'Acrílico', 'MDF'],
+    entrega: '2–4 días hábiles'
+  },
+  estampados: {
+    incluye: ['Transfer térmico', 'Vinilo textil', 'Pruebas de color'],
+    tags: ['Camisetas', 'Gorras', 'Bolsos', 'Uniformes'],
+    entrega: '2–3 días hábiles'
+  },
+  btl: {
+    incluye: ['Staff (azafatas/modelos)', 'Guion de activación', 'Supervisión'],
+    tags: ['Activación', 'Sampling', 'Trade', 'Eventos'],
+    entrega: 'Planificación 5–10 días'
+  },
+  redes: {
+    incluye: ['Calendario de contenido', 'Diseño y copy', 'Reporte mensual'],
+    tags: ['IG', 'FB', 'Reels', 'Ads'],
+    entrega: 'Inicio en 48 h'
+  },
+  personalizados: {
+    incluye: ['Asesoría 1:1', 'Prototipo previo', 'Ajustes ilimitados (alcance)'],
+    tags: ['A medida', 'Prototipo', 'Iterativo', 'Entrega guiada'],
+    entrega: 'Según alcance'
+  }
+};
 
 export default function Servicios() {
   const [active, setActive] = useState(servicios[0].slug);
@@ -24,6 +74,7 @@ export default function Servicios() {
   const closeBtnRef = useRef(null);
 
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
+  const info = meta[active] || { incluye: [], tags: [], entrega: '—' };
 
   useEffect(() => {
     function onKey(e){ if(e.key === 'Escape') setLightbox({ slug: null, index: null }); }
@@ -40,6 +91,7 @@ export default function Servicios() {
     return () => document.removeEventListener('keydown', onKey);
   }, [lightbox]);
 
+  // 5 imágenes (hero + 4)
   const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
 
   return (
@@ -93,8 +145,9 @@ export default function Servicios() {
             </div>
           </aside>
 
-          {/* Detalle + galería */}
+          {/* Detalle + galería + detalles del servicio */}
           <div className="md:col-span-8 lg:col-span-8">
+            {/* Encabezado */}
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
                 <h4 className="text-2xl md:text-3xl font-semibold text-[#167c88]">{activo.title}</h4>
@@ -109,6 +162,7 @@ export default function Servicios() {
               </a>
             </div>
 
+            {/* Galería (hero + 4) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Hero */}
               <button
@@ -127,34 +181,83 @@ export default function Servicios() {
                 </div>
               </button>
 
-              {/* Mini grid */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Thumbs */}
+              <div className="grid grid-cols-2 gap-4 content-start">
                 {imgs.slice(1).map((src, idx) => (
                   <button
                     key={src}
                     onClick={() => setLightbox({ slug: active, index: idx + 1 })}
-                    className="group aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
+                    className="group relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
                     aria-label={`Abrir imagen ${idx + 2}`}
                   >
                     <img
                       src={src}
                       alt={`${activo.title} ${idx + 2}`}
                       className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-                      onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
+                      onError={(e) => {
+                        const card = e.currentTarget.parentElement;
+                        if (card) card.style.display = 'none';
+                      }}
                     />
                   </button>
                 ))}
               </div>
             </div>
 
-            <p className="text-white/60 text-sm mt-3">
+            {/* Detalles del servicio (relleno del espacio) */}
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Incluye */}
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+                <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <CheckCircle2 size={18} className="text-[#167c88]" /> Incluye
+                </h5>
+                <ul className="space-y-2">
+                  {info.incluye.map((item, i) => (
+                    <li key={i} className="text-white/85 text-sm flex items-start gap-2">
+                      <span className="mt-[3px]">
+                        <CheckCircle2 size={16} className="text-[#167c88]" />
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Tags */}
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+                <h5 className="text-white font-semibold mb-3">Tags</h5>
+                <div className="flex flex-wrap gap-2">
+                  {info.tags.map((t, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1 rounded-full text-sm bg-[#167c88]/15 text-[#b9e6eb] ring-1 ring-[#167c88]/30"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Entrega */}
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+                <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Timer size={18} className="text-[#167c88]" /> Entrega estimada
+                </h5>
+                <p className="text-white/85">{info.entrega}</p>
+                <p className="text-white/60 text-sm mt-2">
+                  *Sujeto a validación de archivos y volumen de producción.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-white/60 text-sm mt-4">
               Coloca tus imágenes en <code className="text-white/80">/public/services/{active}/1.jpg ... 5.jpg</code>
             </p>
           </div>
         </div>
       </div>
 
-      {/* Lightbox con z-index alto para pasar por encima de la barra lateral */}
+      {/* Lightbox (5 imágenes) */}
       <AnimatePresence>
         {lightbox.slug && (
           <>
