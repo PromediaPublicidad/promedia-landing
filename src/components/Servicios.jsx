@@ -36,7 +36,7 @@ export default function Servicios() {
   const info = meta[active] || { descripcion: '', tags: [] };
 
   // 5 imágenes (hero + 4)
-  const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpeg`);
+  const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
 
   return (
     <section
@@ -106,14 +106,16 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Galería (hero + 4) – sin clic, sin modal */}
+            {/* Galería (hero + 4) – hero adaptativo sin recorte ni overlay */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Hero: mostrar imagen COMPLETA (object-contain) y sin overlay */}
-              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-100 grid place-items-center">
+              {/* HERO: adapta altura a la imagen, sin aspect fijo, sin zoom */}
+              <div className="relative w-full rounded-xl ring-1 ring-white/10 bg-gray-100 flex items-center justify-center p-2">
                 <img
                   src={imgs[0]}
                   alt={`${activo.title} 1`}
-                  className="max-h-full max-w-full object-contain"
+                  className="block w-auto h-auto max-w-full max-h-[70vh] md:max-h-[520px] object-contain"
+                  decoding="async"
+                  loading="eager"
                   onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
                 />
               </div>
@@ -129,6 +131,8 @@ export default function Servicios() {
                       src={src}
                       alt={`${activo.title} ${idx + 2}`}
                       className="h-full w-full object-cover"
+                      decoding="async"
+                      loading="lazy"
                       onError={(e) => {
                         const card = e.currentTarget.parentElement;
                         if (card) card.style.display = 'none';
