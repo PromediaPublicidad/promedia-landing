@@ -10,6 +10,23 @@ const logos = [
   "/alliances/Purificacion.png",
   "/alliances/Valentino.png",
   "/alliances/Decathlon.png",
+  "/alliances/Honda.png",
+  "/alliances/Aliss.png",
+  "/alliances/Hooters.png",
+  "/alliances/Kids.png",
+  "/alliances/Kors.png",
+  "/alliances/Bijoux.png",
+  "/alliances/Pacific.png",
+  "/alliances/Azahar.png",
+  "/alliances/Flow.png",
+  "/alliances/Fendi.png",
+  "/alliances/Tods.png",
+  "/alliances/Kate.png",
+  "/alliances/Helly.png",
+  "/alliances/Ramada.png",
+  "/alliances/Coach.png",
+  "/alliances/Rocky.png",
+  "/alliances/Dip.png",
 ];
 
 function Row({ items, reverse = false, speed = 22 }) {
