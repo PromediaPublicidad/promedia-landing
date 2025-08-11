@@ -63,7 +63,7 @@ export default function Servicios() {
   const info = meta[active] || { descripcion: '', tags: [] };
 
   // 5 imágenes (hero + 4)
-  const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
+  const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpeg`);
 
   return (
     <section
