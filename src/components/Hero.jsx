@@ -13,7 +13,7 @@ export default function Hero() {
         playsInline
       >
         {/* Quitar /public de la ruta */}
-        <source src="/Hero-Video.mp4" type="video/mp4" />
+        <source src="/hero-video.mp4" type="video/mp4" />
         Tu navegador no soporta video HTML5.
       </video>
 
