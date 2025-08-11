@@ -35,22 +35,8 @@ export default function Servicios() {
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
   const info = meta[active] || { descripcion: '', tags: [] };
 
-  // 5 imágenes fijas
-  const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpeg`);
-
-  // Clases de “mosaico” para 5 fotos (índice 0..4)
-  const tile = (i) => [
-    // 0: HERO grande (contain, sin recorte)
-    'col-span-2 md:col-span-3 md:row-span-3 flex items-center justify-center p-2 bg-transparent ring-0',
-    // 1: ancho arriba derecha
-    'col-span-2 md:col-span-3 md:row-span-2',
-    // 2: mediana abajo derecha
-    'col-span-1 md:col-span-2 md:row-span-1',
-    // 3: pequeña
-    'col-span-1 md:col-span-1 md:row-span-1',
-    // 4: alta y angosta
-    'col-span-2 md:col-span-2 md:row-span-2'
-  ][i] || 'col-span-1 md:col-span-2 md:row-span-1';
+  // 5 imágenes
+  const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
 
   return (
     <section
@@ -103,7 +89,7 @@ export default function Servicios() {
             </div>
           </aside>
 
-          {/* Detalle + collage + descripción + tags */}
+          {/* Detalle + collage ordenado + descripción + tags */}
           <div className="md:col-span-8 lg:col-span-8">
             {/* Encabezado */}
             <div className="mb-6 flex items-center justify-between gap-4">
@@ -120,29 +106,19 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Collage profesional (5 imágenes) */}
-            <div className="grid grid-cols-2 md:grid-cols-6 auto-rows-[120px] md:auto-rows-[140px] gap-4">
+            {/* Collage ordenado (3 columnas en desktop): 3 arriba + 2 abajo, todo proporcional */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {imgs.map((src, i) => (
                 <div
                   key={src}
-                  className={[
-                    // Base visual (borde sutil sólo para las miniaturas, no el hero)
-                    i === 0
-                      ? 'rounded-xl overflow-hidden ' // hero sin ring ni bg
-                      : 'rounded-xl overflow-hidden ring-1 ring-white/10 bg-gray-200',
-                    tile(i)
-                  ].join(' ')}
+                  className="aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
                 >
                   <img
                     src={src}
                     alt={`${activo.title} ${i + 1}`}
-                    className={
-                      i === 0
-                        ? 'block w-auto h-auto max-w-full max-h-full object-contain' // HERO limpio
-                        : 'h-full w-full object-cover' // resto cubren su tile
-                    }
+                    className="h-full w-full object-cover"
                     decoding="async"
-                    loading={i === 0 ? 'eager' : 'lazy'}
+                    loading={i < 3 ? 'eager' : 'lazy'}
                     onError={(e) => {
                       const card = e.currentTarget.parentElement;
                       if (card) card.style.display = 'none';
