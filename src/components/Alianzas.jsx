@@ -69,9 +69,9 @@ export default function Alianzas() {
           Nuestras alianzas
         </h2>
 
-        <Row items={logos} speed={10} />
+        <Row items={logos} speed={30} />
         <div className="h-8 md:h-10" />
-        <Row items={logos} reverse speed={12} />
+        <Row items={logos} reverse speed={40} />
       </div>
     </motion.section>
   );
