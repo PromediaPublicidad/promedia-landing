@@ -2,61 +2,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
-// Ajuste para no chocar con tu barra lateral:
-// Si la barra está a la IZQUIERDA, deja xl:pl-[96px]. Si está a la DERECHA, cambia por xl:pr-[96px].
-const MAX_FOTOS = 10; // hasta 10 imágenes en el collage del modal
+// Ajustes rápidos para no chocar con la barra lateral de iconos
+// Si tu barra está a la IZQUIERDA, deja xl:pl-[96px].
+// Si está a la DERECHA, cambia por xl:pr-[96px].
 
 const servicios = [
-  { icon: <Palette size={28} />,    title: 'Branding & Diseño',         desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
-  { icon: <Printer size={28} />,    title: 'Impresión Gigantográfica',  desc: 'Lonas, vinilos y gran formato.',           slug: 'gigantografia' },
-  { icon: <Building2 size={28} />,  title: 'Producción Visual',         desc: 'Displays, habladores y estructuras.',      slug: 'produccion-visual' },
-  { icon: <FileText size={28} />,   title: 'Digital & Offset',          desc: 'Alta calidad en distintos formatos.',      slug: 'digital-offset' },
-  { icon: <Package size={28} />,    title: 'Impresión sobre rígidos',   desc: 'PVC, foamboard, acrílicos.',               slug: 'rigidos' },
-  { icon: <Shirt size={28} />,      title: 'Estampados térmicos',       desc: 'Textiles y materiales rígidos.',           slug: 'estampados' },
-  { icon: <Rocket size={28} />,     title: 'Activaciones BTL',          desc: 'Azafatas, modelos y eventos.',             slug: 'btl' },
-  { icon: <Smartphone size={28} />, title: 'Redes Sociales',            desc: 'Gestión de contenido y estrategia.',       slug: 'redes' },
-  { icon: <Target size={28} />,     title: 'Soluciones Personalizadas', desc: 'A tu medida.',                              slug: 'personalizados' },
+  { icon: <Palette size={28} />, title: 'Branding & Diseño', desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
+  { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.', slug: 'gigantografia' },
+  { icon: <Building2 size={28} />, title: 'Producción Visual', desc: 'Displays, habladores y estructuras.', slug: 'produccion-visual' },
+  { icon: <FileText size={28} />, title: 'Digital & Offset', desc: 'Alta calidad en distintos formatos.', slug: 'digital-offset' },
+  { icon: <Package size={28} />, title: 'Impresión sobre rígidos', desc: 'PVC, foamboard, acrílicos.', slug: 'rigidos' },
+  { icon: <Shirt size={28} />, title: 'Estampados térmicos', desc: 'Textiles y materiales rígidos.', slug: 'estampados' },
+  { icon: <Rocket size={28} />, title: 'Activaciones BTL', desc: 'Azafatas, modelos y eventos.', slug: 'btl' },
+  { icon: <Smartphone size={28} />, title: 'Redes Sociales', desc: 'Gestión de contenido y estrategia.', slug: 'redes' },
+  { icon: <Target size={28} />, title: 'Soluciones Personalizadas', desc: 'A tu medida.', slug: 'personalizados' },
 ];
 
 export default function Servicios() {
   const [active, setActive] = useState(servicios[0].slug);
   const [lightbox, setLightbox] = useState({ slug: null, index: null });
-  const [loadedImgs, setLoadedImgs] = useState([]); // URLs que sí cargaron (evita el parpadeo)
-  const [isLoading, setIsLoading] = useState(false);
   const closeBtnRef = useRef(null);
 
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
-
-  // Preload de imágenes para el collage (evita "aparecen bases y se quitan")
-  useEffect(() => {
-    if (!lightbox.slug) return;
-    setIsLoading(true);
-    setLoadedImgs([]);
-
-    let cancelled = false;
-    const urls = Array.from({ length: MAX_FOTOS }, (_, i) => `/services/${lightbox.slug}/${i + 1}.jpg`);
-
-    Promise.allSettled(
-      urls.map(
-        (src) =>
-          new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(src);
-            img.onerror = () => resolve(null);
-            img.src = src;
-          })
-      )
-    ).then((results) => {
-      if (cancelled) return;
-      const ok = results
-        .map(r => (r.status === 'fulfilled' ? r.value : null))
-        .filter(Boolean);
-      setLoadedImgs(ok);
-      setIsLoading(false);
-    });
-
-    return () => { cancelled = true; };
-  }, [lightbox]);
 
   useEffect(() => {
     function onKey(e){ if(e.key === 'Escape') setLightbox({ slug: null, index: null }); }
@@ -73,8 +40,7 @@ export default function Servicios() {
     return () => document.removeEventListener('keydown', onKey);
   }, [lightbox]);
 
-  // Imágenes para la vista de página (hero + 4 thumbs)
-  const pageImgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
+  const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
 
   return (
     <section
@@ -127,7 +93,7 @@ export default function Servicios() {
             </div>
           </aside>
 
-          {/* Detalle + galería en página (hero + 4 thumbs) */}
+          {/* Detalle + galería */}
           <div className="md:col-span-8 lg:col-span-8">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
@@ -151,7 +117,7 @@ export default function Servicios() {
                 aria-label="Abrir imagen principal"
               >
                 <img
-                  src={pageImgs[0]}
+                  src={imgs[0]}
                   alt={`${activo.title} 1`}
                   className="h-full w-full object-cover transition scale-100 group-hover:scale-[1.02]"
                   onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
@@ -161,23 +127,20 @@ export default function Servicios() {
                 </div>
               </button>
 
-              {/* Thumbs (4) */}
-              <div className="grid grid-cols-2 gap-4 content-start">
-                {pageImgs.slice(1).map((src, idx) => (
+              {/* Mini grid */}
+              <div className="grid grid-cols-2 gap-4">
+                {imgs.slice(1).map((src, idx) => (
                   <button
                     key={src}
                     onClick={() => setLightbox({ slug: active, index: idx + 1 })}
-                    className="group relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
+                    className="group aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
                     aria-label={`Abrir imagen ${idx + 2}`}
                   >
                     <img
                       src={src}
                       alt={`${activo.title} ${idx + 2}`}
                       className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-                      onError={(e) => {
-                        const card = e.currentTarget.parentElement;
-                        if (card) card.style.display = 'none';
-                      }}
+                      onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
                     />
                   </button>
                 ))}
@@ -185,13 +148,13 @@ export default function Servicios() {
             </div>
 
             <p className="text-white/60 text-sm mt-3">
-              Coloca tus imágenes en <code className="text-white/80">/public/services/{active}/1.jpg ... {MAX_FOTOS}.jpg</code>
+              Coloca tus imágenes en <code className="text-white/80">/public/services/{active}/1.jpg ... 5.jpg</code>
             </p>
           </div>
         </div>
       </div>
 
-      {/* Lightbox con COLLAGE (mosaic). Pre-cargamos y solo renderizamos las que sí existen. */}
+      {/* Lightbox con z-index alto para pasar por encima de la barra lateral */}
       <AnimatePresence>
         {lightbox.slug && (
           <>
@@ -208,7 +171,7 @@ export default function Servicios() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.98 }}
             >
-              <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl p-3 md:p-6">
+              <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-3 md:p-6">
                 <button
                   ref={closeBtnRef}
                   onClick={() => setLightbox({ slug: null, index: null })}
@@ -220,46 +183,18 @@ export default function Servicios() {
 
                 <h4 className="text-2xl font-semibold mb-4 text-[#167c88] capitalize">{activo.title}</h4>
 
-                {/* COLLAGE GRID */}
-                {isLoading ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="animate-pulse bg-gray-200 rounded-xl aspect-[4/3]" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                    {loadedImgs.map((src, idx) => {
-                      // Clases para collage (variaciones de tamaño/aspecto por índice)
-                      const tile = [
-                        'md:col-span-3 aspect-[16/10]', // 1
-                        'md:col-span-3 aspect-[16/10]', // 2
-                        'md:col-span-2 aspect-[3/4]',   // 3
-                        'md:col-span-2 aspect-[4/3]',   // 4
-                        'md:col-span-2 aspect-[4/3]',   // 5
-                        'md:col-span-3 aspect-[16/10]', // 6
-                        'md:col-span-3 aspect-[16/10]', // 7
-                        'md:col-span-2 aspect-[4/3]',   // 8
-                        'md:col-span-2 aspect-[4/3]',   // 9
-                        'md:col-span-2 aspect-[3/4]',   // 10
-                      ][idx] || 'md:col-span-2 aspect-[4/3]';
-
-                      return (
-                        <div
-                          key={src}
-                          className={`overflow-hidden rounded-xl ring-1 ring-black/5 bg-gray-100 ${tile}`}
-                        >
-                          <img
-                            src={src}
-                            alt={`${activo.title} ${idx + 1}`}
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[1,2,3,4,5].map((n) => (
+                    <div key={n} className="aspect-[4/3] overflow-hidden rounded-lg ring-1 ring-black/5 bg-gray-100">
+                      <img
+                        src={`/services/${active}/${n}.jpg`}
+                        alt={`${active} ${n}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.style.opacity = '0.3'; e.currentTarget.alt = 'Pendiente'; }}
+                      />
+                    </div>
+                  ))}
+                </div>
 
                 <div className="mt-6 flex justify-end">
                   <a
