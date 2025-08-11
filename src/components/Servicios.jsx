@@ -17,44 +17,17 @@ const servicios = [
   { icon: <Target size={28} />,  title: 'Soluciones Personalizadas',desc: 'A tu medida.',                             slug: 'personalizados' },
 ];
 
-// Descripción corta + tags por servicio (brevísimo)
+// Descripción corta + tags por servicio
 const meta = {
-  branding: {
-    descripcion: 'Identidad clara y coherente.',
-    tags: ['Logo', 'Manual', 'Papelería', 'Plantillas']
-  },
-  gigantografia: {
-    descripcion: 'Impacto en gran formato.',
-    tags: ['Lona', 'Vinilo', 'Gran Formato', 'Roll-up']
-  },
-  'produccion-visual': {
-    descripcion: 'Montajes y displays listos.',
-    tags: ['Display', 'Habladores', 'Stands', 'Backings']
-  },
-  'digital-offset': {
-    descripcion: 'Impresión nítida y confiable.',
-    tags: ['Volantes', 'Tarjetas', 'Catálogos', 'Revistas']
-  },
-  rigidos: {
-    descripcion: 'Soportes durables y rígidos.',
-    tags: ['PVC', 'Foamboard', 'Acrílico', 'MDF']
-  },
-  estampados: {
-    descripcion: 'Estampado preciso en textil.',
-    tags: ['Camisetas', 'Gorras', 'Bolsos', 'Uniformes']
-  },
-  btl: {
-    descripcion: 'Experiencias de marca reales.',
-    tags: ['Activación', 'Sampling', 'Trade', 'Eventos']
-  },
-  redes: {
-    descripcion: 'Contenido que conecta.',
-    tags: ['IG', 'FB', 'Reels', 'Ads']
-  },
-  personalizados: {
-    descripcion: 'Soluciones a tu medida.',
-    tags: ['Prototipo', 'Iterativo', 'Acompañamiento', 'Entrega guiada']
-  }
+  branding:         { descripcion: 'Identidad clara y coherente.',         tags: ['Logo', 'Manual', 'Papelería', 'Plantillas'] },
+  gigantografia:    { descripcion: 'Impacto en gran formato.',             tags: ['Lona', 'Vinilo', 'Gran Formato', 'Roll-up'] },
+  'produccion-visual': { descripcion: 'Montajes y displays listos.',       tags: ['Display', 'Habladores', 'Stands', 'Backings'] },
+  'digital-offset': { descripcion: 'Impresión nítida y confiable.',        tags: ['Volantes', 'Tarjetas', 'Catálogos', 'Revistas'] },
+  rigidos:          { descripcion: 'Soportes durables y rígidos.',         tags: ['PVC', 'Foamboard', 'Acrílico', 'MDF'] },
+  estampados:       { descripcion: 'Estampado preciso en textil.',         tags: ['Camisetas', 'Gorras', 'Bolsos', 'Uniformes'] },
+  btl:              { descripcion: 'Experiencias de marca reales.',        tags: ['Activación', 'Sampling', 'Trade', 'Eventos'] },
+  redes:            { descripcion: 'Contenido que conecta.',               tags: ['IG', 'FB', 'Reels', 'Ads'] },
+  personalizados:   { descripcion: 'Soluciones a tu medida.',              tags: ['Prototipo', 'Iterativo', 'Acompañamiento', 'Entrega guiada'] }
 };
 
 export default function Servicios() {
@@ -135,30 +108,27 @@ export default function Servicios() {
 
             {/* Galería (hero + 4) – sin clic, sin modal */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Hero */}
-              <div className="group relative aspect-[16/10] w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200">
+              {/* Hero: mostrar imagen COMPLETA (object-contain) y sin overlay */}
+              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-100 grid place-items-center">
                 <img
                   src={imgs[0]}
                   alt={`${activo.title} 1`}
-                  className="h-full w-full object-cover transition scale-100 group-hover:scale-[1.02]"
+                  className="max-h-full max-w-full object-contain"
                   onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
                 />
-                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/50 to-transparent text-white text-sm">
-                  Vista principal
-                </div>
               </div>
 
-              {/* Thumbs */}
+              {/* Thumbs (4) */}
               <div className="grid grid-cols-2 gap-4 content-start">
                 {imgs.slice(1).map((src, idx) => (
                   <div
                     key={src}
-                    className="group relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
+                    className="relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
                   >
                     <img
                       src={src}
                       alt={`${activo.title} ${idx + 2}`}
-                      className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                      className="h-full w-full object-cover"
                       onError={(e) => {
                         const card = e.currentTarget.parentElement;
                         if (card) card.style.display = 'none';
