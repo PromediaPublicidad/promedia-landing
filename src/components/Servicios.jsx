@@ -145,10 +145,7 @@ export default function Servicios() {
                 ))}
               </div>
             </div>
-
-            <p className="text-white/60 text-sm mt-4">
-              Coloca tus imágenes en <code className="text-white/80">/public/services/{active}/1.jpg ... 5.jpg</code>
-            </p>
+            
           </div>
         </div>
       </div>
