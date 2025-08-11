@@ -35,8 +35,22 @@ export default function Servicios() {
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
   const info = meta[active] || { descripcion: '', tags: [] };
 
-  // 5 imágenes (hero + 4)
+  // 5 imágenes fijas
   const imgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpeg`);
+
+  // Clases de “mosaico” para 5 fotos (índice 0..4)
+  const tile = (i) => [
+    // 0: HERO grande (contain, sin recorte)
+    'col-span-2 md:col-span-3 md:row-span-3 flex items-center justify-center p-2 bg-transparent ring-0',
+    // 1: ancho arriba derecha
+    'col-span-2 md:col-span-3 md:row-span-2',
+    // 2: mediana abajo derecha
+    'col-span-1 md:col-span-2 md:row-span-1',
+    // 3: pequeña
+    'col-span-1 md:col-span-1 md:row-span-1',
+    // 4: alta y angosta
+    'col-span-2 md:col-span-2 md:row-span-2'
+  ][i] || 'col-span-1 md:col-span-2 md:row-span-1';
 
   return (
     <section
@@ -89,7 +103,7 @@ export default function Servicios() {
             </div>
           </aside>
 
-          {/* Detalle + galería + descripción + tags */}
+          {/* Detalle + collage + descripción + tags */}
           <div className="md:col-span-8 lg:col-span-8">
             {/* Encabezado */}
             <div className="mb-6 flex items-center justify-between gap-4">
@@ -106,41 +120,36 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Galería (hero + 4) – hero adaptativo sin recorte ni overlay */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* HERO: adapta altura a la imagen, sin aspect fijo, sin zoom */}
-              <div className="relative w-full rounded-xl ring-1 ring-white/10 bg-gray-100 flex items-center justify-center p-2">
-                <img
-                  src={imgs[0]}
-                  alt={`${activo.title} 1`}
-                  className="block w-auto h-auto max-w-full max-h-[70vh] md:max-h-[520px] object-contain"
-                  decoding="async"
-                  loading="eager"
-                  onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
-                />
-              </div>
-
-              {/* Thumbs (4) */}
-              <div className="grid grid-cols-2 gap-4 content-start">
-                {imgs.slice(1).map((src, idx) => (
-                  <div
-                    key={src}
-                    className="relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
-                  >
-                    <img
-                      src={src}
-                      alt={`${activo.title} ${idx + 2}`}
-                      className="h-full w-full object-cover"
-                      decoding="async"
-                      loading="lazy"
-                      onError={(e) => {
-                        const card = e.currentTarget.parentElement;
-                        if (card) card.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
+            {/* Collage profesional (5 imágenes) */}
+            <div className="grid grid-cols-2 md:grid-cols-6 auto-rows-[120px] md:auto-rows-[140px] gap-4">
+              {imgs.map((src, i) => (
+                <div
+                  key={src}
+                  className={[
+                    // Base visual (borde sutil sólo para las miniaturas, no el hero)
+                    i === 0
+                      ? 'rounded-xl overflow-hidden ' // hero sin ring ni bg
+                      : 'rounded-xl overflow-hidden ring-1 ring-white/10 bg-gray-200',
+                    tile(i)
+                  ].join(' ')}
+                >
+                  <img
+                    src={src}
+                    alt={`${activo.title} ${i + 1}`}
+                    className={
+                      i === 0
+                        ? 'block w-auto h-auto max-w-full max-h-full object-contain' // HERO limpio
+                        : 'h-full w-full object-cover' // resto cubren su tile
+                    }
+                    decoding="async"
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    onError={(e) => {
+                      const card = e.currentTarget.parentElement;
+                      if (card) card.style.display = 'none';
+                    }}
+                  />
+                </div>
+              ))}
             </div>
 
             {/* Descripción corta */}
