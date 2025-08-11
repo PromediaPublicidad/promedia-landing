@@ -2,22 +2,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
-// Ajustes rápidos para no chocar con la barra lateral de iconos
-// Si tu barra está a la IZQUIERDA, deja xl:pl-[96px].
-// Si está a la DERECHA, cambia por xl:pr-[96px].
-
-const MAX_FOTOS = 10; // ← ahora el modal soporta hasta 10 imágenes
+// Ajuste para no chocar con tu barra lateral:
+// Si la barra está a la IZQUIERDA, deja xl:pl-[96px]. Si está a la DERECHA, cambia por xl:pr-[96px].
+const MAX_FOTOS = 10;        // total soportado
+const MAX_THUMBS_PAGE = 9;   // cuántas miniaturas mostramos en la página (además del hero)
 
 const servicios = [
-  { icon: <Palette size={28} />, title: 'Branding & Diseño',        desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
-  { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
-  { icon: <Building2 size={28} />, title: 'Producción Visual',      desc: 'Displays, habladores y estructuras.',     slug: 'produccion-visual' },
-  { icon: <FileText size={28} />, title: 'Digital & Offset',         desc: 'Alta calidad en distintos formatos.',     slug: 'digital-offset' },
-  { icon: <Package size={28} />, title: 'Impresión sobre rígidos',  desc: 'PVC, foamboard, acrílicos.',              slug: 'rigidos' },
-  { icon: <Shirt size={28} />,   title: 'Estampados térmicos',      desc: 'Textiles y materiales rígidos.',          slug: 'estampados' },
-  { icon: <Rocket size={28} />,  title: 'Activaciones BTL',         desc: 'Azafatas, modelos y eventos.',            slug: 'btl' },
-  { icon: <Smartphone size={28} />, title: 'Redes Sociales',        desc: 'Gestión de contenido y estrategia.',      slug: 'redes' },
-  { icon: <Target size={28} />,  title: 'Soluciones Personalizadas',desc: 'A tu medida.',                             slug: 'personalizados' },
+  { icon: <Palette size={28} />,    title: 'Branding & Diseño',         desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
+  { icon: <Printer size={28} />,    title: 'Impresión Gigantográfica',  desc: 'Lonas, vinilos y gran formato.',           slug: 'gigantografia' },
+  { icon: <Building2 size={28} />,  title: 'Producción Visual',         desc: 'Displays, habladores y estructuras.',      slug: 'produccion-visual' },
+  { icon: <FileText size={28} />,   title: 'Digital & Offset',          desc: 'Alta calidad en distintos formatos.',      slug: 'digital-offset' },
+  { icon: <Package size={28} />,    title: 'Impresión sobre rígidos',   desc: 'PVC, foamboard, acrílicos.',               slug: 'rigidos' },
+  { icon: <Shirt size={28} />,      title: 'Estampados térmicos',       desc: 'Textiles y materiales rígidos.',           slug: 'estampados' },
+  { icon: <Rocket size={28} />,     title: 'Activaciones BTL',          desc: 'Azafatas, modelos y eventos.',             slug: 'btl' },
+  { icon: <Smartphone size={28} />, title: 'Redes Sociales',            desc: 'Gestión de contenido y estrategia.',       slug: 'redes' },
+  { icon: <Target size={28} />,     title: 'Soluciones Personalizadas', desc: 'A tu medida.',                              slug: 'personalizados' },
 ];
 
 export default function Servicios() {
@@ -42,7 +41,7 @@ export default function Servicios() {
     return () => document.removeEventListener('keydown', onKey);
   }, [lightbox]);
 
-  // Rutas de imágenes 1..MAX_FOTOS
+  // Rutas 1..MAX_FOTOS
   const imgs = Array.from({ length: MAX_FOTOS }, (_, i) => `/services/${active}/${i + 1}.jpg`);
 
   return (
@@ -96,7 +95,7 @@ export default function Servicios() {
             </div>
           </aside>
 
-          {/* Detalle + galería (hero + 4 thumbs) */}
+          {/* Detalle + galería en página: HERO + muchas thumbs (hasta 9) */}
           <div className="md:col-span-8 lg:col-span-8">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
@@ -112,6 +111,7 @@ export default function Servicios() {
               </a>
             </div>
 
+            {/* Layout: 2 columnas -> izquierda HERO (1), derecha THUMBS (hasta 9) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Hero */}
               <button
@@ -130,20 +130,24 @@ export default function Servicios() {
                 </div>
               </button>
 
-              {/* Mini grid (4 thumbs) */}
-              <div className="grid grid-cols-2 gap-4">
-                {imgs.slice(1, 5).map((src, idx) => (
+              {/* Thumbs: del 2 al 10, ocultando las que no existan */}
+              <div className="grid grid-cols-2 gap-4 content-start">
+                {imgs.slice(1, 1 + MAX_THUMBS_PAGE).map((src, idx) => (
                   <button
                     key={src}
                     onClick={() => setLightbox({ slug: active, index: idx + 1 })}
-                    className="group aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
+                    className="group relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
                     aria-label={`Abrir imagen ${idx + 2}`}
                   >
                     <img
                       src={src}
                       alt={`${activo.title} ${idx + 2}`}
                       className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-                      onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
+                      onError={(e) => {
+                        // Oculta la tarjeta si la imagen no existe
+                        const card = e.currentTarget.parentElement;
+                        if (card) card.style.display = 'none';
+                      }}
                     />
                   </button>
                 ))}
@@ -157,7 +161,7 @@ export default function Servicios() {
         </div>
       </div>
 
-      {/* Lightbox con z-index alto para pasar por encima de la barra lateral */}
+      {/* Lightbox: 2/3/4 cols, hasta 10 imágenes; oculta las que falten */}
       <AnimatePresence>
         {lightbox.slug && (
           <>
@@ -186,7 +190,6 @@ export default function Servicios() {
 
                 <h4 className="text-2xl font-semibold mb-4 text-[#167c88] capitalize">{activo.title}</h4>
 
-                {/* Galería: 2/3/4 columnas, hasta 10 imágenes; si faltan, se ocultan. */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {Array.from({ length: MAX_FOTOS }, (_, i) => i + 1).map((n) => (
                     <div key={n} className="aspect-[4/3] overflow-hidden rounded-lg ring-1 ring-black/5 bg-gray-100">
@@ -197,7 +200,7 @@ export default function Servicios() {
                         loading="lazy"
                         onError={(e) => {
                           const card = e.currentTarget.parentElement;
-                          if (card) card.style.display = 'none'; // oculta la tarjeta si no existe la imagen
+                          if (card) card.style.display = 'none';
                         }}
                       />
                     </div>
