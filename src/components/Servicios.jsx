@@ -4,8 +4,7 @@ import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartpho
 
 // Ajuste para no chocar con tu barra lateral:
 // Si la barra está a la IZQUIERDA, deja xl:pl-[96px]. Si está a la DERECHA, cambia por xl:pr-[96px].
-const MAX_FOTOS = 10;        // total soportado
-const MAX_THUMBS_PAGE = 9;   // cuántas miniaturas mostramos en la página (además del hero)
+const MAX_FOTOS = 10; // hasta 10 imágenes en el collage del modal
 
 const servicios = [
   { icon: <Palette size={28} />,    title: 'Branding & Diseño',         desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
@@ -22,9 +21,42 @@ const servicios = [
 export default function Servicios() {
   const [active, setActive] = useState(servicios[0].slug);
   const [lightbox, setLightbox] = useState({ slug: null, index: null });
+  const [loadedImgs, setLoadedImgs] = useState([]); // URLs que sí cargaron (evita el parpadeo)
+  const [isLoading, setIsLoading] = useState(false);
   const closeBtnRef = useRef(null);
 
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
+
+  // Preload de imágenes para el collage (evita "aparecen bases y se quitan")
+  useEffect(() => {
+    if (!lightbox.slug) return;
+    setIsLoading(true);
+    setLoadedImgs([]);
+
+    let cancelled = false;
+    const urls = Array.from({ length: MAX_FOTOS }, (_, i) => `/services/${lightbox.slug}/${i + 1}.jpg`);
+
+    Promise.allSettled(
+      urls.map(
+        (src) =>
+          new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(src);
+            img.onerror = () => resolve(null);
+            img.src = src;
+          })
+      )
+    ).then((results) => {
+      if (cancelled) return;
+      const ok = results
+        .map(r => (r.status === 'fulfilled' ? r.value : null))
+        .filter(Boolean);
+      setLoadedImgs(ok);
+      setIsLoading(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [lightbox]);
 
   useEffect(() => {
     function onKey(e){ if(e.key === 'Escape') setLightbox({ slug: null, index: null }); }
@@ -41,8 +73,8 @@ export default function Servicios() {
     return () => document.removeEventListener('keydown', onKey);
   }, [lightbox]);
 
-  // Rutas 1..MAX_FOTOS
-  const imgs = Array.from({ length: MAX_FOTOS }, (_, i) => `/services/${active}/${i + 1}.jpg`);
+  // Imágenes para la vista de página (hero + 4 thumbs)
+  const pageImgs = [1,2,3,4,5].map(n => `/services/${active}/${n}.jpg`);
 
   return (
     <section
@@ -95,7 +127,7 @@ export default function Servicios() {
             </div>
           </aside>
 
-          {/* Detalle + galería en página: HERO + muchas thumbs (hasta 9) */}
+          {/* Detalle + galería en página (hero + 4 thumbs) */}
           <div className="md:col-span-8 lg:col-span-8">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
@@ -111,7 +143,6 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Layout: 2 columnas -> izquierda HERO (1), derecha THUMBS (hasta 9) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Hero */}
               <button
@@ -120,7 +151,7 @@ export default function Servicios() {
                 aria-label="Abrir imagen principal"
               >
                 <img
-                  src={imgs[0]}
+                  src={pageImgs[0]}
                   alt={`${activo.title} 1`}
                   className="h-full w-full object-cover transition scale-100 group-hover:scale-[1.02]"
                   onError={(e) => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.alt = 'Pendiente'; }}
@@ -130,9 +161,9 @@ export default function Servicios() {
                 </div>
               </button>
 
-              {/* Thumbs: del 2 al 10, ocultando las que no existan */}
+              {/* Thumbs (4) */}
               <div className="grid grid-cols-2 gap-4 content-start">
-                {imgs.slice(1, 1 + MAX_THUMBS_PAGE).map((src, idx) => (
+                {pageImgs.slice(1).map((src, idx) => (
                   <button
                     key={src}
                     onClick={() => setLightbox({ slug: active, index: idx + 1 })}
@@ -144,7 +175,6 @@ export default function Servicios() {
                       alt={`${activo.title} ${idx + 2}`}
                       className="h-full w-full object-cover transition group-hover:scale-[1.02]"
                       onError={(e) => {
-                        // Oculta la tarjeta si la imagen no existe
                         const card = e.currentTarget.parentElement;
                         if (card) card.style.display = 'none';
                       }}
@@ -161,7 +191,7 @@ export default function Servicios() {
         </div>
       </div>
 
-      {/* Lightbox: 2/3/4 cols, hasta 10 imágenes; oculta las que falten */}
+      {/* Lightbox con COLLAGE (mosaic). Pre-cargamos y solo renderizamos las que sí existen. */}
       <AnimatePresence>
         {lightbox.slug && (
           <>
@@ -190,22 +220,46 @@ export default function Servicios() {
 
                 <h4 className="text-2xl font-semibold mb-4 text-[#167c88] capitalize">{activo.title}</h4>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {Array.from({ length: MAX_FOTOS }, (_, i) => i + 1).map((n) => (
-                    <div key={n} className="aspect-[4/3] overflow-hidden rounded-lg ring-1 ring-black/5 bg-gray-100">
-                      <img
-                        src={`/services/${active}/${n}.jpg`}
-                        alt={`${active} ${n}`}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          const card = e.currentTarget.parentElement;
-                          if (card) card.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                {/* COLLAGE GRID */}
+                {isLoading ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="animate-pulse bg-gray-200 rounded-xl aspect-[4/3]" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                    {loadedImgs.map((src, idx) => {
+                      // Clases para collage (variaciones de tamaño/aspecto por índice)
+                      const tile = [
+                        'md:col-span-3 aspect-[16/10]', // 1
+                        'md:col-span-3 aspect-[16/10]', // 2
+                        'md:col-span-2 aspect-[3/4]',   // 3
+                        'md:col-span-2 aspect-[4/3]',   // 4
+                        'md:col-span-2 aspect-[4/3]',   // 5
+                        'md:col-span-3 aspect-[16/10]', // 6
+                        'md:col-span-3 aspect-[16/10]', // 7
+                        'md:col-span-2 aspect-[4/3]',   // 8
+                        'md:col-span-2 aspect-[4/3]',   // 9
+                        'md:col-span-2 aspect-[3/4]',   // 10
+                      ][idx] || 'md:col-span-2 aspect-[4/3]';
+
+                      return (
+                        <div
+                          key={src}
+                          className={`overflow-hidden rounded-xl ring-1 ring-black/5 bg-gray-100 ${tile}`}
+                        >
+                          <img
+                            src={src}
+                            alt={`${activo.title} ${idx + 1}`}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 <div className="mt-6 flex justify-end">
                   <a
