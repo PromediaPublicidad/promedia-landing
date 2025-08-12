@@ -2,9 +2,50 @@ import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
-// Ajuste lateral según tu barra:
-// Izquierda => xl:pl-[96px] | Derecha => xl:pr-[96px]
+// ===== Helpers =====
+function SmartImage({
+  base,                          // p.ej. /services/branding/1  (sin extensión)
+  alt,
+  exts = ['webp', 'jpg', 'jpeg', 'png'],
+  className = '',
+  loading = 'lazy',
+  decoding = 'async',
+  onAllFail,
+}) {
+  const [i, setI] = useState(0);
+  const src = `${base}.${exts[i]}`;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      loading={loading}
+      decoding={decoding}
+      onError={() => {
+        if (i < exts.length - 1) setI(i + 1);
+        else onAllFail && onAllFail();
+      }}
+    />
+  );
+}
 
+function Tile({ base, alt, eager = false, contain = false }) {
+  const [hidden, setHidden] = useState(false);
+  if (hidden) return null;
+  return (
+    <div className="aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200">
+      <SmartImage
+        base={base}
+        alt={alt}
+        loading={eager ? 'eager' : 'lazy'}
+        className={contain ? 'block w-auto h-auto max-w-full max-h-full object-contain mx-auto my-auto' : 'h-full w-full object-cover'}
+        onAllFail={() => setHidden(true)}
+      />
+    </div>
+  );
+}
+
+// ===== Data =====
 const servicios = [
   { icon: <Palette size={28} />, title: 'Branding & Diseño',        desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
   { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
@@ -17,7 +58,6 @@ const servicios = [
   { icon: <Target size={28} />,  title: 'Soluciones Personalizadas',desc: 'A tu medida.',                             slug: 'personalizados' },
 ];
 
-// Descripción corta + tags por servicio
 const meta = {
   branding:         { descripcion: 'Identidad clara y coherente.',         tags: ['Logo', 'Manual', 'Papelería', 'Plantillas'] },
   gigantografia:    { descripcion: 'Impacto en gran formato.',             tags: ['Lona', 'Vinilo', 'Gran Formato', 'Roll-up'] },
@@ -35,15 +75,11 @@ export default function Servicios() {
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
   const info = meta[active] || { descripcion: '', tags: [] };
 
-  // 5 imágenes
-  const imgs = [1,2,3,4,5,6].map(n => `/services/${active}/${n}.jpeg`);
+  // paths base sin extensión (1..5)
+  const bases = [1,2,3,4,5].map(n => `/services/${active}/${n}`);
 
   return (
-    <section
-      id="servicios"
-      className="relative bg-[#0f1f25] py-24 px-6 md:px-10 xl:pl-[96px] 2xl:pl-[112px]"
-    >
-      {/* Fondo decorativo sutil */}
+    <section id="servicios" className="relative bg-[#0f1f25] py-24 px-6 md:px-10 xl:pl-[96px] 2xl:pl-[112px]">
       <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]">
         <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-[#167c88]/10 blur-3xl"/>
         <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"/>
@@ -56,7 +92,7 @@ export default function Servicios() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          {/* Lista izquierda (sticky) */}
+          {/* Lista izquierda */}
           <aside className="md:col-span-4 lg:col-span-4">
             <div className="md:sticky md:top-28 space-y-3 z-10">
               {servicios.map((s, i) => {
@@ -91,7 +127,6 @@ export default function Servicios() {
 
           {/* Detalle + collage ordenado + descripción + tags */}
           <div className="md:col-span-8 lg:col-span-8">
-            {/* Encabezado */}
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
                 <h4 className="text-2xl md:text-3xl font-semibold text-[#167c88]">{activo.title}</h4>
@@ -106,25 +141,16 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Collage ordenado (3 columnas en desktop): 3 arriba + 2 abajo, todo proporcional */}
+            {/* Collage 3 arriba + 2 abajo, todas con el mismo borde */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {imgs.map((src, i) => (
-                <div
-                  key={src}
-                  className="aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200"
-                >
-                  <img
-                    src={src}
-                    alt={`${activo.title} ${i + 1}`}
-                    className="h-full w-full object-cover"
-                    decoding="async"
-                    loading={i < 3 ? 'eager' : 'lazy'}
-                    onError={(e) => {
-                      const card = e.currentTarget.parentElement;
-                      if (card) card.style.display = 'none';
-                    }}
-                  />
-                </div>
+              {bases.map((base, i) => (
+                <Tile
+                  key={base}
+                  base={base}
+                  alt={`${activo.title} ${i + 1}`}
+                  eager={i < 3}
+                  contain={false}        // si quieres que la 1 sea 'contain', pon i === 0
+                />
               ))}
             </div>
 
@@ -136,16 +162,13 @@ export default function Servicios() {
               <h5 className="text-white font-semibold mb-3">Tags</h5>
               <div className="flex flex-wrap gap-2">
                 {info.tags.map((t, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1 rounded-full text-sm bg-[#167c88]/15 text-[#b9e6eb] ring-1 ring-[#167c88]/30"
-                  >
+                  <span key={i} className="px-3 py-1 rounded-full text-sm bg-[#167c88]/15 text-[#b9e6eb] ring-1 ring-[#167c88]/30">
                     #{t}
                   </span>
                 ))}
               </div>
             </div>
-            
+
           </div>
         </div>
       </div>
