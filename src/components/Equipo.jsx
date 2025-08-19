@@ -3,13 +3,13 @@ import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import TitleSweep from "../components/TitleSweep";
 
-// ===== Ajustes visuales globales =====
-const CARD_H_MOBILE = 300;   // alto tarjeta en móvil
-const CARD_H_DESKTOP = 320;  // alto tarjeta en desktop
-const DEFAULT_POS_Y = "60%"; // posición vertical por defecto (50% = centrado)
-const DEFAULT_ZOOM  = 1.0;   // 1 = sin zoom; <1 = alejar un poco
+/* ================ Ajustes globales ================ */
+const CARD_H_MOBILE = 300;
+const CARD_H_DESKTOP = 320;
+const DEFAULT_POS_Y = "60%";
+const DEFAULT_ZOOM  = 1.0;
 
-// ========= DATA (17 personas) =========
+/* ================ Datos del equipo ================ */
 const MEMBERS = [
   // CEO
   { id: 1,  name: "Bashar Yassin",      role: "CEO",                      category: "CEO",        img: "/team/team1.png" },
@@ -21,7 +21,7 @@ const MEMBERS = [
   // Marketing
   { id: 6,  name: "Giuli Santa",        role: "Project Manager",          category: "Marketing",  img: "/team/team6.png" },
   { id: 7,  name: "Dasly Peralta",      role: "Community Manager",        category: "Marketing",  img: "/team/team7.png" },
-  { id: 8,  name: "Dionmer Esaa",       role: "Productor Audiovisual",    category: "Marketing",  img: "/team/team8.png" }, // actualizado
+  { id: 8,  name: "Dionmer Esaa",       role: "Productor Audiovisual",    category: "Marketing",  img: "/team/team8.png" },
   { id: 4,  name: "Thais Soto",         role: "Diseñadora Grafica",       category: "Marketing",  img: "/team/team4.png" },
   { id: 5,  name: "Yerimar Ryfkogel",   role: "Diseñadora Grafica",       category: "Marketing",  img: "/team/team5.png" },
 
@@ -42,57 +42,70 @@ const SUBFILTERS = {
   Marketing: ["Todos", "Project Manager", "Community Manager", "Productor Audiovisual", "Diseñadora Grafica"],
 };
 
-// ===== Tweaks por persona (ID) =====
-// posY: "70%" mueve la foto más ABAJO (cabeza queda más centrada)
-// zoom: <1.0 “aleja” un poco (0.95 recomendado para no dejar bordes)
-const PHOTO_TWEAKS = {
-  1:  { posY: "78%" },          // CEO: bajar más
-  13: { posY: "65%" },          // Johan Guevara: bajar un poco más
-  9:  { posY: "60%", zoom: 0.95 }, // Cristel: alejar y bajar un poco
-  6:  { posY: "60%", zoom: 0.96 }, // Giuli: bajar un poco + menos zoom
-  7:  { posY: "60%", zoom: 0.96 }, // Dasly: idem
-  5:  { posY: "60%", zoom: 0.95 }, // Yerimar: idem con un pelín más de alejamiento
+/* ================ Tweaks (shiftY/zoom) ================ */
+/* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
+const INITIAL_TWEAKS = {
+  1:  { shiftY: 12, zoom: 1.00 }, // CEO: más abajo
+  2:  { shiftY: -4, zoom: 1.00 },
+  3:  { shiftY:  1, zoom: 1.00 },
+  4:  { shiftY:  4, zoom: 1.00 },
+  5:  { shiftY:  3, zoom: 0.95 }, // Yerimar: un poco más abajo + alejar
+  6:  { shiftY:  4, zoom: 0.96 }, // Giuli: abajo + alejar leve
+  7:  { shiftY:  4, zoom: 0.96 }, // Dasly: abajo + alejar leve
+  8:  { shiftY:  2, zoom: 1.00 },
+  9:  { shiftY:  5, zoom: 0.95 }, // Cristel: abajo + alejar
+  10: { shiftY:  3, zoom: 1.00 },
+  11: { shiftY:  4, zoom: 1.00 },
+  12: { shiftY:  2, zoom: 1.00 },
+  13: { shiftY:  6, zoom: 1.00 }, // Johan: un poco más abajo
+  14: { shiftY:  2, zoom: 1.00 },
+  15: { shiftY:  1, zoom: 1.00 },
+  16: { shiftY:  5, zoom: 1.00 },
+  17: { shiftY:  2, zoom: 1.00 },
 };
 
-// ====== Card ======
-function PersonCard({ m }) {
-  const tweak = PHOTO_TWEAKS[m.id] || {};
-  const posY = tweak.posY || DEFAULT_POS_Y;
-  const zoom = typeof tweak.zoom === "number" ? tweak.zoom : DEFAULT_ZOOM;
+/* ================ Card de persona ================ */
+function PersonCard({ m, tweaks }) {
+  const t = tweaks[m.id] || {};
+  const zoom = typeof t.zoom === "number" ? t.zoom : DEFAULT_ZOOM;
+  const hasShift = typeof t.shiftY === "number";
+  const posY = t.posY || DEFAULT_POS_Y; // fallback legacy
+  const translateY = hasShift ? t.shiftY : 0;
 
   return (
     <motion.article
       key={m.id}
+      aria-label={`${m.name} – ${m.role}`}
       className="snap-start min-w-[220px] md:min-w-[240px] lg:min-w-[260px] relative group rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5 bg-white"
       initial={{ opacity: 0, scale: 0.94, y: 8 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.35 }}
     >
-      {/* IMG centrada y con ajuste de posición/zoom específico */}
+      {/* IMG: control real con translateY + scale; objectPosition neutral si usamos shift */}
       <img
         src={m.img}
-        alt={`${m.name} – ${m.role}`}
-        className="w-full object-cover object-center will-change-transform"
+        alt={m.name}
+        className="w-full object-cover will-change-transform select-none"
         style={{
           height: `clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`,
-          objectPosition: `50% ${posY}`,
-          transform: `scale(${zoom})`,
+          objectPosition: hasShift ? "50% 50%" : `50% ${posY}`,
+          transform: `translateY(${translateY}%) scale(${zoom})`,
           transformOrigin: "50% 50%",
         }}
         loading="lazy"
         draggable={false}
       />
 
-      {/* Texto con BLUR exacto detrás (sin overlay gigante) */}
+      {/* Blur alineado al texto */}
       <div className="absolute inset-x-0 bottom-0 p-4">
         <div
           className="rounded-xl px-3 py-2"
           style={{
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
             background:
               "linear-gradient(to top, rgba(0,0,0,0.70), rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15))",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
           }}
         >
           <h3 className="text-white text-base md:text-lg font-semibold leading-tight drop-shadow">
@@ -102,7 +115,7 @@ function PersonCard({ m }) {
         </div>
       </div>
 
-      {/* micro chip */}
+      {/* Micro chip */}
       <div className="absolute top-3 right-3 rounded-full bg-white/85 backdrop-blur px-2 py-1 text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition">
         Team
       </div>
@@ -110,8 +123,8 @@ function PersonCard({ m }) {
   );
 }
 
-// ====== Scroller con SNAP (sin auto-scroll) ======
-function Row({ items }) {
+/* ================ Row con snap ================ */
+function Row({ items, tweaks }) {
   return (
     <div
       className="relative overflow-hidden rounded-3xl"
@@ -125,7 +138,7 @@ function Row({ items }) {
       <div className="w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory snap-always">
         <div className="flex gap-6 w-max px-6 py-4">
           {items.map((m) => (
-            <PersonCard key={m.id} m={m} />
+            <PersonCard key={m.id} m={m} tweaks={tweaks} />
           ))}
         </div>
       </div>
@@ -138,12 +151,14 @@ function chunkInTwo(arr) {
   return [arr.slice(0, mid), arr.slice(mid)];
 }
 
-// ====== CEO Spotlight con tweaks aplicados ======
-function CEOSpotlight({ person }) {
+/* ================ CEO Spotlight (mismo motor) ================ */
+function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
-  const tweak = PHOTO_TWEAKS[person.id] || {};
-  const posY = tweak.posY || "70%";          // aún más abajo que el default
-  const zoom = typeof tweak.zoom === "number" ? tweak.zoom : 1;
+  const t = tweaks[person.id] || {};
+  const zoom = typeof t.zoom === "number" ? t.zoom : 1.0;
+  const hasShift = typeof t.shiftY === "number";
+  const posY = t.posY || "70%";
+  const translateY = hasShift ? t.shiftY : 0;
 
   return (
     <motion.div
@@ -157,17 +172,17 @@ function CEOSpotlight({ person }) {
         <div className="relative">
           <img
             src={person.img}
-            alt={`${person.name} – ${person.role}`}
-            className="w-full object-cover object-center will-change-transform"
+            alt={person.name}
+            className="w-full object-cover will-change-transform select-none"
             style={{
               height: `clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px)`,
-              objectPosition: `50% ${posY}`,
-              transform: `scale(${zoom})`,
+              objectPosition: hasShift ? "50% 50%" : `50% ${posY}`,
+              transform: `translateY(${translateY}%) scale(${zoom})`,
               transformOrigin: "50% 50%",
             }}
             loading="eager"
+            draggable={false}
           />
-          {/* Badge */}
           <div className="absolute top-4 left-4">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#167c88] text-white shadow">
               {person.role}
@@ -193,9 +208,150 @@ function CEOSpotlight({ person }) {
   );
 }
 
+/* ================ Team Tuner oculto (?tuneTeam=1) ================ */
+function TeamTuner({ members, tweaks, setTweaks }) {
+  const [filter, setFilter] = useState("Todos");
+
+  const list = useMemo(() => {
+    if (filter === "Todos") return members;
+    return members.filter((m) => m.category === filter || (filter === "CEO" && m.category === "CEO"));
+  }, [members, filter]);
+
+  const toJSON = () => {
+    const out = {};
+    for (const m of members) {
+      const t = tweaks[m.id];
+      if (!t) continue;
+      if (typeof t.shiftY === "number" && t.shiftY !== 0) out[m.id] = { ...(out[m.id] || {}), shiftY: t.shiftY };
+      if (t.posY && t.posY !== DEFAULT_POS_Y) out[m.id] = { ...(out[m.id] || {}), posY: t.posY };
+      if (typeof t.zoom === "number" && t.zoom !== DEFAULT_ZOOM) out[m.id] = { ...(out[m.id] || {}), zoom: Number(t.zoom.toFixed(2)) };
+    }
+    return JSON.stringify(out, null, 2);
+  };
+
+  const copyJSON = async () => {
+    try { await navigator.clipboard.writeText(toJSON()); alert("PHOTO_TWEAKS copiado ✨"); }
+    catch { prompt("Copia el JSON:", toJSON()); }
+  };
+
+  return (
+    <div className="mt-12 border rounded-2xl p-4 md:p-6 bg-neutral-50">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <span className="text-sm font-medium">Editor de recorte (dev):</span>
+        {["Todos", "CEO", ...CATEGORIES].map((c) => (
+          <button
+            key={c}
+            onClick={() => setFilter(c)}
+            className={[
+              "px-3 py-1.5 rounded-full text-xs font-medium",
+              filter === c ? "bg-black text-white" : "bg-white text-neutral-700 border",
+            ].join(" ")}
+          >
+            {c}
+          </button>
+        ))}
+        <button onClick={copyJSON} className="ml-auto px-3 py-1.5 rounded-md text-xs font-semibold bg-[#167c88] text-white">
+          Copiar JSON
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {list.map((m) => {
+          const t = tweaks[m.id] || {};
+          const posY = parseInt((t.posY || DEFAULT_POS_Y).replace("%", ""), 10);
+          const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
+          const zoom = typeof t.zoom === "number" ? t.zoom : DEFAULT_ZOOM;
+
+          return (
+            <div key={m.id} className="rounded-xl border bg-white p-3">
+              <div className="text-sm font-semibold mb-2">
+                {m.name} <span className="opacity-60">({m.role})</span>
+              </div>
+              <div className="relative rounded-xl overflow-hidden">
+                <img
+                  src={m.img}
+                  alt={m.name}
+                  className="w-full object-cover select-none"
+                  style={{
+                    height: 260,
+                    objectPosition: "50% 50%",
+                    transform: `translateY(${shiftY}%) scale(${zoom})`,
+                    transformOrigin: "50% 50%",
+                  }}
+                  draggable={false}
+                />
+                <div className="absolute inset-x-0 bottom-0 p-3">
+                  <div
+                    className="rounded-lg px-3 py-1.5"
+                    style={{
+                      background:
+                        "linear-gradient(to top, rgba(0,0,0,0.70), rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15))",
+                      backdropFilter: "blur(8px)",
+                      WebkitBackdropFilter: "blur(8px)",
+                    }}
+                  >
+                    <div className="text-white text-xs font-medium leading-tight">{m.name}</div>
+                    <div className="text-white/85 text-[11px]">{m.role}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <label className="text-xs">
+                  shiftY: <b>{shiftY}%</b>
+                  <input
+                    type="range" min={-20} max={20} step={1} value={shiftY}
+                    onChange={(e) => setTweaks((prev) => ({ ...prev, [m.id]: { ...(prev[m.id] || {}), shiftY: parseInt(e.target.value, 10) } }))}
+                    className="w-full"
+                  />
+                </label>
+                <label className="text-xs">
+                  posY: <b>{posY}%</b>
+                  <input
+                    type="range" min={45} max={85} step={1} value={posY}
+                    onChange={(e) => setTweaks((prev) => ({ ...prev, [m.id]: { ...(prev[m.id] || {}), posY: `${e.target.value}%` } }))}
+                    className="w-full"
+                  />
+                </label>
+                <label className="text-xs">
+                  zoom: <b>{zoom.toFixed(2)}x</b>
+                  <input
+                    type="range" min={0.90} max={1.10} step={0.01} value={zoom}
+                    onChange={(e) => setTweaks((prev) => ({ ...prev, [m.id]: { ...(prev[m.id] || {}), zoom: parseFloat(e.target.value) } }))}
+                    className="w-full"
+                  />
+                </label>
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => setTweaks((prev) => { const c = { ...prev }; delete c[m.id]; return c; })}
+                  className="text-xs px-2 py-1 rounded-md border"
+                >
+                  Reset
+                </button>
+                <div className="text-[11px] text-neutral-500 self-center">
+                  id {m.id} • {m.category}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <details className="mt-4">
+        <summary className="cursor-pointer text-xs text-neutral-600">Ver JSON actual</summary>
+        <pre className="mt-2 text-[11px] bg-white p-3 rounded-md overflow-auto">{toJSON()}</pre>
+      </details>
+    </div>
+  );
+}
+
+/* ================ Componente principal ================ */
 export default function Equipo() {
   const [category, setCategory] = useState("Marketing");
   const [subfilter, setSubfilter] = useState("Todos");
+  const [tweaks, setTweaks] = useState(INITIAL_TWEAKS);
 
   const CEO = useMemo(() => MEMBERS.find((m) => m.category === "CEO"), []);
   const countsByCat = useMemo(() => {
@@ -205,14 +361,18 @@ export default function Equipo() {
   }, []);
 
   const filtered = useMemo(() => {
-    const base = MEMBERS
-      .filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
-      .filter((m) => m.category === category);
+    const base = MEMBERS.filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
+                        .filter((m) => m.category === category);
     if (category !== "Marketing" || subfilter === "Todos") return base;
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
 
-  const [rowA, rowB] = useMemo(() => chunkInTwo(filtered), [filtered]);
+  const [rowA, rowB] = useMemo(() => {
+    const mid = Math.ceil(filtered.length / 2);
+    return [filtered.slice(0, mid), filtered.slice(mid)];
+  }, [filtered]);
+
+  const tunerOn = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tuneTeam");
 
   return (
     <section id="equipo" className="py-24 px-6 md:px-24 bg-white select-none">
@@ -222,10 +382,10 @@ export default function Equipo() {
         </TitleSweep>
       </h2>
 
-      {/* CEO spotlight */}
-      <CEOSpotlight person={CEO} />
+      {/* CEO destacado */}
+      <CEOSpotlight person={CEO} tweaks={tweaks} />
 
-      {/* Tabs por categoría (sin CEO) */}
+      {/* Tabs por categoría */}
       <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
         {CATEGORIES.map((cat) => {
           const active = category === cat;
@@ -268,10 +428,13 @@ export default function Equipo() {
         <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
       ) : (
         <div className="space-y-8">
-          <Row items={rowA} />
-          {rowB.length > 0 && <Row items={rowB} />}
+          <Row items={rowA} tweaks={tweaks} />
+          {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
         </div>
       )}
+
+      {/* Editor oculto (activar con ?tuneTeam=1) */}
+      {tunerOn && <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />}
     </section>
   );
 }
