@@ -9,7 +9,7 @@ const CARD_H_DESKTOP = 320;
 const DEFAULT_ZOOM  = 1.0;
 
 /* Extra altura solo para el CEO (evita cortar la cabeza sin tocar zoom) */
-const CEO_EXTRA_HEADROOM = 60; // píxeles extra de alto en el spotlight
+const CEO_EXTRA_HEADROOM = 80; // píxeles extra de alto en el spotlight
 
 /* ================ Datos del equipo ================ */
 const MEMBERS = [
