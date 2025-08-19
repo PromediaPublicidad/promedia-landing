@@ -175,7 +175,7 @@ function CEOSpotlight({ person, tweaks }) {
         <div className="relative">
           <CropFrame
             /* altura original + 3 inches de headroom */
-            height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 0in)`}
+            height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 1in)`}
             src={person.img}
             alt={person.name}
             shiftY={shiftY}  // 18
