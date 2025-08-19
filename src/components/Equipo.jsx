@@ -8,9 +8,6 @@ const CARD_H_MOBILE = 300;
 const CARD_H_DESKTOP = 320;
 const DEFAULT_ZOOM  = 1.0;
 
-/* Extra altura solo para el CEO (por si quieres más aire arriba) */
-const CEO_EXTRA_HEADROOM = 150;
-
 /* ================ Datos del equipo ================ */
 const MEMBERS = [
   // CEO
@@ -47,7 +44,7 @@ const SUBFILTERS = {
 /* ================ Tweaks (shiftY/zoom) ================ */
 /* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
-  1:  { shiftY: 18, zoom: 1.00 }, // CEO: mantén 18, ahora no se corta
+  1:  { shiftY: 18, zoom: 1.00 }, // CEO: baja la imagen sin cambiar tamaño
   2:  { shiftY: -4, zoom: 1.00 },
   3:  { shiftY:  1, zoom: 1.00 },
   4:  { shiftY:  4, zoom: 1.00 },
@@ -66,39 +63,17 @@ const INITIAL_TWEAKS = {
   17: { shiftY:  2, zoom: 1.00 },
 };
 
-/* ================ Helper: frame fijo =================
-   - fit="cover" (default): recorta como antes.
-   - fit="contain": asegura ver TODO (sin recortes) y rellena con blur si bgBlur.
-====================================================== */
-function CropFrame({
-  height,
-  src,
-  alt,
-  shiftY = 0,
-  zoom = 1,
-  eager = false,
-  fit = "cover",     // "cover" | "contain"
-  bgBlur = false,    // si true, agrega una capa de fondo difuminada
-  children
-}) {
+/* ================ Helper: frame fijo + imagen absoluta ================ */
+function CropFrame({ height, src, alt, shiftY = 0, zoom = 1, eager = false, children }) {
   return (
     <div className="relative overflow-hidden select-none" style={{ height }}>
-      {bgBlur && (
-        <img
-          src={src}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-70"
-          draggable={false}
-        />
-      )}
       <img
         src={src}
         alt={alt}
-        className={`absolute inset-0 w-full h-full ${fit === "contain" ? "object-contain" : "object-cover"} will-change-transform`}
+        className="absolute inset-0 w-full h-full object-cover will-change-transform"
         style={{
-          transform: `translateY(${shiftY}%) scale(${fit === "contain" ? 1 : zoom})`,
-          transformOrigin: "50% 50%",
+          transform: `translateY(${shiftY}%) scale(${zoom})`,
+          transformOrigin: "50% 50%"
         }}
         loading={eager ? "eager" : "lazy"}
         draggable={false}
@@ -108,7 +83,7 @@ function CropFrame({
   );
 }
 
-/* ================ Card de persona (resto del team) ================ */
+/* ================ Card de persona ================ */
 function PersonCard({ m, tweaks }) {
   const t = tweaks[m.id] || {};
   const zoom = typeof t.zoom === "number" ? t.zoom : DEFAULT_ZOOM;
@@ -130,7 +105,6 @@ function PersonCard({ m, tweaks }) {
         alt={m.name}
         shiftY={shiftY}
         zoom={zoom}
-        fit="cover"
       >
         {/* Blur alineado al texto */}
         <div className="absolute inset-x-0 bottom-0 p-4">
@@ -182,11 +156,11 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ CEO Spotlight (CONTAIN + blur fill) ================ */
+/* ================ CEO Spotlight (mismo tamaño de antes) ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
-  const zoom = typeof t.zoom === "number" ? t.zoom : 1.0;      // se ignora si fit="contain"
+  const zoom = typeof t.zoom === "number" ? t.zoom : 1.0;
   const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
 
   return (
@@ -200,13 +174,12 @@ function CEOSpotlight({ person, tweaks }) {
       <div className="grid md:grid-cols-2 gap-0">
         <div className="relative">
           <CropFrame
-            height={`clamp(${CARD_H_MOBILE + 80 + CEO_EXTRA_HEADROOM}px, 36vw, ${CARD_H_DESKTOP + 120 + CEO_EXTRA_HEADROOM}px)`}
+            /* ← altura que teníamos antes del cambio */
+            height={`clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px)`}
             src={person.img}
             alt={person.name}
-            shiftY={shiftY}
-            zoom={zoom}
-            fit="contain"   // ⬅ clave: nunca recorta la imagen del CEO
-            bgBlur          // ⬅ relleno elegante detrás
+            shiftY={shiftY}  // 18
+            zoom={zoom}      // 1.00
             eager
           >
             <div className="absolute top-4 left-4">
