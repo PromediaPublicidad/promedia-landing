@@ -4,10 +4,10 @@ import { useMemo, useState } from "react";
 import TitleSweep from "../components/TitleSweep";
 
 // ===== Ajustes visuales globales =====
-const CARD_H_MOBILE = 300;   // alto en px (mobile)
-const CARD_H_DESKTOP = 320;  // alto en px (md+)
-const OBJ_POS_Y = "60%";     // mueve la imagen verticalmente (50% = centro). Sube/baja según necesites.
-const OVERLAY_REM = 6;       // alto del difuminado bajo el texto (rem aprox. 6 = h-24)
+const CARD_H_MOBILE = 300;   // alto tarjeta en móvil
+const CARD_H_DESKTOP = 320;  // alto tarjeta en desktop
+const DEFAULT_POS_Y = "60%"; // posición vertical por defecto (50% = centrado)
+const DEFAULT_ZOOM  = 1.0;   // 1 = sin zoom; <1 = alejar un poco
 
 // ========= DATA (17 personas) =========
 const MEMBERS = [
@@ -42,8 +42,24 @@ const SUBFILTERS = {
   Marketing: ["Todos", "Project Manager", "Community Manager", "Productor Audiovisual", "Diseñadora Grafica"],
 };
 
+// ===== Tweaks por persona (ID) =====
+// posY: "70%" mueve la foto más ABAJO (cabeza queda más centrada)
+// zoom: <1.0 “aleja” un poco (0.95 recomendado para no dejar bordes)
+const PHOTO_TWEAKS = {
+  1:  { posY: "78%" },          // CEO: bajar más
+  13: { posY: "65%" },          // Johan Guevara: bajar un poco más
+  9:  { posY: "60%", zoom: 0.95 }, // Cristel: alejar y bajar un poco
+  6:  { posY: "60%", zoom: 0.96 }, // Giuli: bajar un poco + menos zoom
+  7:  { posY: "60%", zoom: 0.96 }, // Dasly: idem
+  5:  { posY: "60%", zoom: 0.95 }, // Yerimar: idem con un pelín más de alejamiento
+};
+
 // ====== Card ======
 function PersonCard({ m }) {
+  const tweak = PHOTO_TWEAKS[m.id] || {};
+  const posY = tweak.posY || DEFAULT_POS_Y;
+  const zoom = typeof tweak.zoom === "number" ? tweak.zoom : DEFAULT_ZOOM;
+
   return (
     <motion.article
       key={m.id}
@@ -53,36 +69,37 @@ function PersonCard({ m }) {
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.35 }}
     >
-      {/* IMG centrada y más abajo */}
+      {/* IMG centrada y con ajuste de posición/zoom específico */}
       <img
         src={m.img}
         alt={`${m.name} – ${m.role}`}
-        className="w-full object-cover object-center"
+        className="w-full object-cover object-center will-change-transform"
         style={{
           height: `clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`,
-          objectPosition: `50% ${OBJ_POS_Y}`,
+          objectPosition: `50% ${posY}`,
+          transform: `scale(${zoom})`,
+          transformOrigin: "50% 50%",
         }}
         loading="lazy"
         draggable={false}
       />
 
-      {/* Blur/gradient EXACTO a la altura del texto */}
-      <div
-        className="absolute inset-x-0 bottom-0 pointer-events-none"
-        style={{
-          height: `${OVERLAY_REM}rem`,
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0.35) 60%, rgba(0,0,0,0))",
-          backdropFilter: "blur(8px)",
-        }}
-      />
-
-      {/* Texto dentro del overlay */}
+      {/* Texto con BLUR exacto detrás (sin overlay gigante) */}
       <div className="absolute inset-x-0 bottom-0 p-4">
-        <h3 className="text-white text-base md:text-lg font-semibold leading-tight drop-shadow">
-          {m.name}
-        </h3>
-        <p className="text-white/85 text-xs md:text-sm">{m.role}</p>
+        <div
+          className="rounded-xl px-3 py-2"
+          style={{
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.70), rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15))",
+          }}
+        >
+          <h3 className="text-white text-base md:text-lg font-semibold leading-tight drop-shadow">
+            {m.name}
+          </h3>
+          <p className="text-white/85 text-xs md:text-sm">{m.role}</p>
+        </div>
       </div>
 
       {/* micro chip */}
@@ -121,9 +138,13 @@ function chunkInTwo(arr) {
   return [arr.slice(0, mid), arr.slice(mid)];
 }
 
-// ====== CEO Spotlight (mismo tratamiento de imagen y blur) ======
+// ====== CEO Spotlight con tweaks aplicados ======
 function CEOSpotlight({ person }) {
   if (!person) return null;
+  const tweak = PHOTO_TWEAKS[person.id] || {};
+  const posY = tweak.posY || "70%";          // aún más abajo que el default
+  const zoom = typeof tweak.zoom === "number" ? tweak.zoom : 1;
+
   return (
     <motion.div
       className="relative mb-14 rounded-3xl overflow-hidden ring-1 ring-black/5 shadow-lg bg-white"
@@ -137,22 +158,16 @@ function CEOSpotlight({ person }) {
           <img
             src={person.img}
             alt={`${person.name} – ${person.role}`}
-            className="w-full object-cover object-center"
+            className="w-full object-cover object-center will-change-transform"
             style={{
               height: `clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px)`,
-              objectPosition: `50% ${OBJ_POS_Y}`,
+              objectPosition: `50% ${posY}`,
+              transform: `scale(${zoom})`,
+              transformOrigin: "50% 50%",
             }}
             loading="eager"
           />
-          <div
-            className="absolute inset-x-0 bottom-0 pointer-events-none"
-            style={{
-              height: `${OVERLAY_REM + 2}rem`,
-              background:
-                "linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.3) 60%, rgba(0,0,0,0))",
-              backdropFilter: "blur(6px)",
-            }}
-          />
+          {/* Badge */}
           <div className="absolute top-4 left-4">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#167c88] text-white shadow">
               {person.role}
@@ -190,8 +205,9 @@ export default function Equipo() {
   }, []);
 
   const filtered = useMemo(() => {
-    const base = MEMBERS.filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
-                        .filter((m) => m.category === category);
+    const base = MEMBERS
+      .filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
+      .filter((m) => m.category === category);
     if (category !== "Marketing" || subfilter === "Todos") return base;
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
