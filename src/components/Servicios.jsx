@@ -2,9 +2,30 @@ import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
-// ===== Helpers =====
+/* =================== MANIFEST (sin 404) =================== */
+/* Vite: detecta TODO lo que exista en src/assets/services/** */
+const _ALL_ASSETS = import.meta.glob(
+  '../assets/services/*/*.{webp,jpg,jpeg,png}',
+  { eager: true, as: 'url' }
+);
+// Mapa: { [slug]: { [index:number]: url } }
+const ASSET_MAP = (() => {
+  const map = {};
+  for (const p in _ALL_ASSETS) {
+    // ../assets/services/branding/3.webp
+    const m = p.match(/services\/([^/]+)\/(\d+)\.(webp|jpg|jpeg|png)$/i);
+    if (!m) continue;
+    const slug = m[1];
+    const idx = Number(m[2]);
+    map[slug] ??= {};
+    map[slug][idx] = _ALL_ASSETS[p];
+  }
+  return map;
+})();
+
+/* =================== Helpers =================== */
 function SmartImage({
-  base,                          // p.ej. /services/branding/1  (sin extensión)
+  base,                          // p.ej. /services/branding/1 (sin extensión) -> fallback a public/
   alt,
   exts = ['webp', 'jpg', 'jpeg', 'png'],
   className = '',
@@ -29,23 +50,47 @@ function SmartImage({
   );
 }
 
-function Tile({ base, alt, eager = false, contain = false }) {
+/** Resuelve URL sin 404:
+ *  1) Busca en ASSET_MAP (src/assets/…)
+ *  2) Si no existe, retorna null (Tile hará fallback a /public con SmartImage)
+ */
+function resolveUrl(slug, index) {
+  return ASSET_MAP[slug]?.[index] ?? null;
+}
+
+function Tile({ url, base, alt, eager = false, contain = false }) {
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
+
+  const classImg = contain
+    ? 'block w-auto h-auto max-w-full max-h-full object-contain mx-auto my-auto'
+    : 'h-full w-full object-cover';
+
   return (
     <div className="aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200">
-      <SmartImage
-        base={base}
-        alt={alt}
-        loading={eager ? 'eager' : 'lazy'}
-        className={contain ? 'block w-auto h-auto max-w-full max-h-full object-contain mx-auto my-auto' : 'h-full w-full object-cover'}
-        onAllFail={() => setHidden(true)}
-      />
+      {url ? (
+        <img
+          src={url}
+          alt={alt}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          className={classImg}
+          onError={() => setHidden(true)} // muy raro: si falla la URL build-eada, oculta
+        />
+      ) : (
+        <SmartImage
+          base={base} // fallback a public/services/<slug>/<n>.(webp|jpg|..)
+          alt={alt}
+          loading={eager ? 'eager' : 'lazy'}
+          className={classImg}
+          onAllFail={() => setHidden(true)}
+        />
+      )}
     </div>
   );
 }
 
-// ===== Data =====
+/* =================== Data =================== */
 const servicios = [
   { icon: <Palette size={28} />, title: 'Branding & Diseño',        desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
   { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
@@ -59,15 +104,15 @@ const servicios = [
 ];
 
 const meta = {
-  branding:         { descripcion: 'Identidad clara y coherente.',         tags: ['Logo', 'Manual', 'Papelería', 'Plantillas'] },
-  gigantografia:    { descripcion: 'Impacto en gran formato.',             tags: ['Lona', 'Vinilo', 'Gran Formato', 'Roll-up'] },
-  'produccion-visual': { descripcion: 'Montajes y displays listos.',       tags: ['Display', 'Habladores', 'Stands', 'Backings'] },
-  'digital-offset': { descripcion: 'Impresión nítida y confiable.',        tags: ['Volantes', 'Tarjetas', 'Catálogos', 'Revistas'] },
-  rigidos:          { descripcion: 'Soportes durables y rígidos.',         tags: ['PVC', 'Foamboard', 'Acrílico', 'MDF'] },
-  estampados:       { descripcion: 'Estampado preciso en textil.',         tags: ['Camisetas', 'Gorras', 'Bolsos', 'Uniformes'] },
-  btl:              { descripcion: 'Experiencias de marca reales.',        tags: ['Activación', 'Sampling', 'Trade', 'Eventos'] },
-  redes:            { descripcion: 'Contenido que conecta.',               tags: ['IG', 'FB', 'Reels', 'Ads'] },
-  personalizados:   { descripcion: 'Soluciones a tu medida.',              tags: ['Prototipo', 'Iterativo', 'Acompañamiento', 'Entrega guiada'] }
+  branding:            { descripcion: 'Identidad clara y coherente.',         tags: ['Logo', 'Manual', 'Papelería', 'Plantillas'] },
+  gigantografia:       { descripcion: 'Impacto en gran formato.',             tags: ['Lona', 'Vinilo', 'Gran Formato', 'Roll-up'] },
+  'produccion-visual': { descripcion: 'Montajes y displays listos.',          tags: ['Display', 'Habladores', 'Stands', 'Backings'] },
+  'digital-offset':    { descripcion: 'Impresión nítida y confiable.',        tags: ['Volantes', 'Tarjetas', 'Catálogos', 'Revistas'] },
+  rigidos:             { descripcion: 'Soportes durables y rígidos.',         tags: ['PVC', 'Foamboard', 'Acrílico', 'MDF'] },
+  estampados:          { descripcion: 'Estampado preciso en textil.',         tags: ['Camisetas', 'Gorras', 'Bolsos', 'Uniformes'] },
+  btl:                 { descripcion: 'Experiencias de marca reales.',        tags: ['Activación', 'Sampling', 'Trade', 'Eventos'] },
+  redes:               { descripcion: 'Contenido que conecta.',               tags: ['IG', 'FB', 'Reels', 'Ads'] },
+  personalizados:      { descripcion: 'Soluciones a tu medida.',              tags: ['Prototipo', 'Iterativo', 'Acompañamiento', 'Entrega guiada'] }
 };
 
 export default function Servicios() {
@@ -75,8 +120,15 @@ export default function Servicios() {
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
   const info = meta[active] || { descripcion: '', tags: [] };
 
-  // paths base sin extensión (1..5)
-  const bases = [1,2,3,4,5].map(n => `/services/${active}/${n}`);
+  // Si hay imágenes en src/assets para este slug, usa las que existan (sin 404).
+  // Si no hay manifest para este slug, cae al esquema 1..5 en /public.
+  const indices = useMemo(() => {
+    const map = ASSET_MAP[active];
+    if (map && Object.keys(map).length) {
+      return Object.keys(map).map(n => Number(n)).sort((a,b)=>a-b);
+    }
+    return [1,2,3,4,5];
+  }, [active]);
 
   return (
     <section id="servicios" className="relative bg-[#0f1f25] py-24 px-6 md:px-10 xl:pl-[96px] 2xl:pl-[112px]">
@@ -125,7 +177,7 @@ export default function Servicios() {
             </div>
           </aside>
 
-          {/* Detalle + collage ordenado + descripción + tags */}
+          {/* Detalle + collage */}
           <div className="md:col-span-8 lg:col-span-8">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
@@ -141,17 +193,22 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Collage 3 arriba + 2 abajo, todas con el mismo borde */}
+            {/* Collage 3 arriba + 2 abajo */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {bases.map((base, i) => (
-                <Tile
-                  key={base}
-                  base={base}
-                  alt={`${activo.title} ${i + 1}`}
-                  eager={i < 3}
-                  contain={false}        // si quieres que la 1 sea 'contain', pon i === 0
-                />
-              ))}
+              {indices.map((n, i) => {
+                const url = resolveUrl(active, n);                 // -> URL build-eada si existe en src/assets
+                const base = `/services/${active}/${n}`;           // -> fallback a public/
+                return (
+                  <Tile
+                    key={`${active}-${n}`}
+                    url={url}
+                    base={base}
+                    alt={`${activo.title} ${n}`}
+                    eager={i < 3}
+                    contain={false}
+                  />
+                );
+              })}
             </div>
 
             {/* Descripción corta */}
