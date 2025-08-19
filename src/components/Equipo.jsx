@@ -6,7 +6,7 @@ import TitleSweep from "../components/TitleSweep";
 /* ================ Ajustes globales ================ */
 const CARD_H_MOBILE = 300;
 const CARD_H_DESKTOP = 320;
-const DEFAULT_POS_Y = "60%";
+const DEFAULT_POS_Y = "60%"; // legacy (lo ignoro si hay shiftY)
 const DEFAULT_ZOOM  = 1.0;
 
 /* ================ Datos del equipo ================ */
@@ -64,13 +64,31 @@ const INITIAL_TWEAKS = {
   17: { shiftY:  2, zoom: 1.00 },
 };
 
+/* ================ Helper: frame fijo + imagen absoluta ================ */
+function CropFrame({ height, src, alt, shiftY = 0, zoom = 1, eager = false, children }) {
+  return (
+    <div className="relative overflow-hidden select-none" style={{ height }}>
+      <img
+        src={src}
+        alt={alt}
+        className="absolute inset-0 w-full h-full object-cover will-change-transform"
+        style={{
+          transform: `translateY(${shiftY}%) scale(${zoom})`,
+          transformOrigin: "50% 50%"
+        }}
+        loading={eager ? "eager" : "lazy"}
+        draggable={false}
+      />
+      {children}
+    </div>
+  );
+}
+
 /* ================ Card de persona ================ */
 function PersonCard({ m, tweaks }) {
   const t = tweaks[m.id] || {};
   const zoom = typeof t.zoom === "number" ? t.zoom : DEFAULT_ZOOM;
-  const hasShift = typeof t.shiftY === "number";
-  const posY = t.posY || DEFAULT_POS_Y; // fallback legacy
-  const translateY = hasShift ? t.shiftY : 0;
+  const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
 
   return (
     <motion.article
@@ -82,43 +100,36 @@ function PersonCard({ m, tweaks }) {
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.35 }}
     >
-      {/* IMG: control real con translateY + scale; objectPosition neutral si usamos shift */}
-      <img
+      <CropFrame
+        height={`clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`}
         src={m.img}
         alt={m.name}
-        className="w-full object-cover will-change-transform select-none"
-        style={{
-          height: `clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`,
-          objectPosition: hasShift ? "50% 50%" : `50% ${posY}`,
-          transform: `translateY(${translateY}%) scale(${zoom})`,
-          transformOrigin: "50% 50%",
-        }}
-        loading="lazy"
-        draggable={false}
-      />
-
-      {/* Blur alineado al texto */}
-      <div className="absolute inset-x-0 bottom-0 p-4">
-        <div
-          className="rounded-xl px-3 py-2"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.70), rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15))",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-          }}
-        >
-          <h3 className="text-white text-base md:text-lg font-semibold leading-tight drop-shadow">
-            {m.name}
-          </h3>
-          <p className="text-white/85 text-xs md:text-sm">{m.role}</p>
+        shiftY={shiftY}
+        zoom={zoom}
+      >
+        {/* Blur alineado al texto */}
+        <div className="absolute inset-x-0 bottom-0 p-4">
+          <div
+            className="rounded-xl px-3 py-2"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(0,0,0,0.70), rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.15))",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+            }}
+          >
+            <h3 className="text-white text-base md:text-lg font-semibold leading-tight drop-shadow">
+              {m.name}
+            </h3>
+            <p className="text-white/85 text-xs md:text-sm">{m.role}</p>
+          </div>
         </div>
-      </div>
 
-      {/* Micro chip */}
-      <div className="absolute top-3 right-3 rounded-full bg-white/85 backdrop-blur px-2 py-1 text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition">
-        Team
-      </div>
+        {/* Micro chip */}
+        <div className="absolute top-3 right-3 rounded-full bg-white/85 backdrop-blur px-2 py-1 text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition">
+          Team
+        </div>
+      </CropFrame>
     </motion.article>
   );
 }
@@ -146,16 +157,11 @@ function Row({ items, tweaks }) {
   );
 }
 
-function chunkInTwo(arr) {
-  const mid = Math.ceil(arr.length / 2);
-  return [arr.slice(0, mid), arr.slice(mid)];
-}
-
 /* ================ CEO Spotlight (mismo motor) ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
-  const zoom = typeof t.zoom === "number" ? t.zoom : 1;
+  const zoom = typeof t.zoom === "number" ? t.zoom : 1.0;
   const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
 
   return (
@@ -185,8 +191,12 @@ function CEOSpotlight({ person, tweaks }) {
         </div>
 
         <div className="flex flex-col justify-center p-8 md:p-10">
-          <h3 className="text-2xl md:text-3xl font-bold text-neutral-900">{person.name}</h3>
-          <p className="mt-2 text-neutral-600">Liderando la visión y la calidad de Promedia.</p>
+          <h3 className="text-2xl md:text-3xl font-bold text-neutral-900">
+            {person.name}
+          </h3>
+          <p className="mt-2 text-neutral-600">
+            Liderando la visión y la calidad de Promedia.
+          </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <span className="px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 text-xs">Dirección</span>
             <span className="px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 text-xs">Estrategia</span>
@@ -351,8 +361,9 @@ export default function Equipo() {
   }, []);
 
   const filtered = useMemo(() => {
-    const base = MEMBERS.filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
-                        .filter((m) => m.category === category);
+    const base = MEMBERS
+      .filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
+      .filter((m) => m.category === category);
     if (category !== "Marketing" || subfilter === "Todos") return base;
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
