@@ -42,7 +42,6 @@ const SUBFILTERS = {
 };
 
 /* ================ Tweaks (shiftY/zoom) ================ */
-/* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
   1:  { shiftY: 18, zoom: 1.00 }, // CEO
   2:  { shiftY: -4, zoom: 1.00 },
@@ -106,7 +105,6 @@ function PersonCard({ m, tweaks }) {
         shiftY={shiftY}
         zoom={zoom}
       >
-        {/* Blur alineado al texto */}
         <div className="absolute inset-x-0 bottom-0 p-4">
           <div
             className="rounded-xl px-3 py-2"
@@ -124,7 +122,6 @@ function PersonCard({ m, tweaks }) {
           </div>
         </div>
 
-        {/* Micro chip */}
         <div className="absolute top-3 right-3 rounded-full bg-white/85 backdrop-blur px-2 py-1 text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition">
           Team
         </div>
@@ -156,7 +153,7 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ CEO Spotlight (más header: +3in en alto del frame) ================ */
+/* ================ CEO Spotlight (altura según tu versión) ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
@@ -174,12 +171,11 @@ function CEOSpotlight({ person, tweaks }) {
       <div className="grid md:grid-cols-2 gap-0">
         <div className="relative">
           <CropFrame
-            /* altura original + 3 inches de headroom */
             height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 0in)`}
             src={person.img}
             alt={person.name}
-            shiftY={shiftY}  // 18
-            zoom={zoom}      // 1.00
+            shiftY={shiftY}
+            zoom={zoom}
             eager
           >
             <div className="absolute top-4 left-4">
@@ -357,12 +353,18 @@ export default function Equipo() {
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
 
+  // ⬇️ NUEVO: Asesoras en una sola fila; el resto se divide en 2 filas como antes
   const [rowA, rowB] = useMemo(() => {
+    if (category === "Asesoras") {
+      return [filtered, []]; // una fila horizontal con las dos asesoras
+    }
     const mid = Math.ceil(filtered.length / 2);
     return [filtered.slice(0, mid), filtered.slice(mid)];
-  }, [filtered]);
+  }, [filtered, category]);
 
-  const tunerOn = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tuneTeam");
+  const tunerOn =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("tuneTeam");
 
   return (
     <section id="equipo" className="py-24 px-6 md:px-24 bg-white select-none">
@@ -383,10 +385,15 @@ export default function Equipo() {
           return (
             <button
               key={cat}
-              onClick={() => { setCategory(cat); setSubfilter("Todos"); }}
+              onClick={() => {
+                setCategory(cat);
+                setSubfilter("Todos");
+              }}
               className={[
                 "px-4 py-2 rounded-full text-sm font-medium transition",
-                active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                active
+                  ? "bg-[#167c88] text-white shadow"
+                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
               ].join(" ")}
             >
               {cat} <span className="opacity-70">({count})</span>
@@ -404,7 +411,9 @@ export default function Equipo() {
               onClick={() => setSubfilter(f)}
               className={[
                 "px-3 py-1.5 rounded-full text-xs font-medium transition",
-                subfilter === f ? "bg-black text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                subfilter === f
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
               ].join(" ")}
             >
               {f}
@@ -413,9 +422,11 @@ export default function Equipo() {
         </div>
       )}
 
-      {/* Carrusel con SNAP (dos filas) */}
+      {/* Carrusel con SNAP */}
       {filtered.length === 0 ? (
-        <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
+        <div className="text-center text-neutral-500 py-16">
+          No hay personas en este filtro.
+        </div>
       ) : (
         <div className="space-y-8">
           <Row items={rowA} tweaks={tweaks} />
@@ -424,7 +435,9 @@ export default function Equipo() {
       )}
 
       {/* Editor oculto (activar con ?tuneTeam=1) */}
-      {tunerOn && <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />}
+      {tunerOn && (
+        <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />
+      )}
     </section>
   );
 }
