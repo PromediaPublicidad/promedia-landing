@@ -44,19 +44,19 @@ const SUBFILTERS = {
 /* ================ Tweaks (shiftY/zoom) ================ */
 /* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
-  1:  { shiftY: 18, zoom: 1.00 }, // CEO: baja la imagen sin cambiar tamaño
+  1:  { shiftY: 18, zoom: 1.00 }, // CEO
   2:  { shiftY: -4, zoom: 1.00 },
   3:  { shiftY:  1, zoom: 1.00 },
   4:  { shiftY:  4, zoom: 1.00 },
-  5:  { shiftY:  3, zoom: 0.95 }, // Yerimar: un poco más abajo + alejar
-  6:  { shiftY:  4, zoom: 0.96 }, // Giuli: abajo + alejar leve
-  7:  { shiftY:  4, zoom: 0.96 }, // Dasly: abajo + alejar leve
+  5:  { shiftY:  3, zoom: 0.95 },
+  6:  { shiftY:  4, zoom: 0.96 },
+  7:  { shiftY:  4, zoom: 0.96 },
   8:  { shiftY:  2, zoom: 1.00 },
-  9:  { shiftY:  5, zoom: 0.95 }, // Cristel: abajo + alejar
+  9:  { shiftY:  5, zoom: 0.95 },
   10: { shiftY:  3, zoom: 1.00 },
   11: { shiftY:  4, zoom: 1.00 },
   12: { shiftY:  2, zoom: 1.00 },
-  13: { shiftY:  6, zoom: 1.00 }, // Johan: un poco más abajo
+  13: { shiftY:  6, zoom: 1.00 },
   14: { shiftY:  2, zoom: 1.00 },
   15: { shiftY:  1, zoom: 1.00 },
   16: { shiftY:  5, zoom: 1.00 },
@@ -156,7 +156,7 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ CEO Spotlight (mismo tamaño de antes) ================ */
+/* ================ CEO Spotlight (más header: +3in en alto del frame) ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
@@ -174,8 +174,8 @@ function CEOSpotlight({ person, tweaks }) {
       <div className="grid md:grid-cols-2 gap-0">
         <div className="relative">
           <CropFrame
-            /* ← altura que teníamos antes del cambio */
-            height={`clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px)`}
+            /* altura original + 3 inches de headroom */
+            height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 3in)`}
             src={person.img}
             alt={person.name}
             shiftY={shiftY}  // 18
