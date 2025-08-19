@@ -45,7 +45,7 @@ const SUBFILTERS = {
 /* ================ Tweaks (shiftY/zoom) ================ */
 /* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
-  1:  { shiftY: 18, zoom: 1.00 }, // CEO: más abajo
+  1:  { shiftY: 28, zoom: 1.00 }, // CEO: más abajo
   2:  { shiftY: -4, zoom: 1.00 },
   3:  { shiftY:  1, zoom: 1.00 },
   4:  { shiftY:  4, zoom: 1.00 },
