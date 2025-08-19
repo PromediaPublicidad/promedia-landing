@@ -2,40 +2,28 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
-/* =================== Descubrimiento SIN 404 (public/services/<slug>/) =================== */
-/* Cache simple por sesión (slug -> string[]) */
-const discoveryCache = new Map();
-
-/* Orden de extensiones por categoría. Para "branding" NO probamos webp. */
-const DEFAULT_EXTS = ['webp','jpg','jpeg','png'];
-const EXT_ORDER = {
-  branding: ['jpg','jpeg','png'],
-  // gigantografia: ['webp','jpg','jpeg','png'],
-  // produccion-visual: ['webp','jpg','jpeg','png'],
-  // ...
+/* =================== Catálogo exacto (sin 404) =================== */
+/* Si un slug aparece aquí, NO hacemos manifest ni probes: usamos solo estos nombres. */
+const KNOWN_PUBLIC_FILES = {
+  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"], // ← lo que tienes hoy
 };
 
-/* (Opcional) Si agregas un manifest en public/services/<slug>/manifest.json,
-   lo leemos primero. Ejemplo de manifest:
-   ["1.jpg","2.png","3.jpeg"]
-*/
-async function fetchManifest(slug) {
-  try {
-    const res = await fetch(`/services/${slug}/manifest.json`, { cache: 'no-store' });
-    if (!res.ok) return null;
-    const list = await res.json();
-    if (!Array.isArray(list)) return null;
-    return list.map((name) => `/services/${slug}/${name}`);
-  } catch {
-    return null;
-  }
-}
+/* Orden de extensiones por categoría (solo para probes de otros slugs) */
+const DEFAULT_EXTS = ['webp','jpg','jpeg','png'];
+const EXT_ORDER = {
+  branding: ['jpg','jpeg','png'], // no se usa si está en KNOWN_PUBLIC_FILES, pero lo dejo por claridad
+  // gigantografia: ['webp','jpg','jpeg','png'],
+  // produccion-visual: ['webp','jpg','jpeg','png'],
+};
 
-/* Explora 1..maxN probando exts en orden, sin spamear la consola.
-   Corta si hay 3 misses seguidos. Usa HEAD para no “romper” la vista. */
+/* =================== Descubrimiento con HEAD (solo si NO hay KNOWN_PUBLIC_FILES[slug]) =================== */
+/* Explora 1..maxN probando exts en orden. Corta en cuanto:
+   - ya encontramos al menos 1 y aparece 1 miss → asumimos numeración contigua y paramos.
+   - O bien alcanzamos el máximo.
+*/
 async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {}) {
   const found = [];
-  let misses = 0;
+  let seenAny = false;
   for (let n = 1; n <= maxN; n++) {
     let hit = null;
     for (const ext of exts) {
@@ -43,28 +31,38 @@ async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {})
       try {
         const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
         if (res.ok) { hit = url; break; }
-      } catch { /* ignore */ }
+      } catch { /* ignore network hiccup */ }
     }
     if (hit) {
       found.push(hit);
-      misses = 0;
-    } else {
-      misses++;
-      if (misses >= 3) break; // no encontramos nada por un rato: paramos
+      seenAny = true;
+    } else if (seenAny) {
+      break; // primera falta tras aciertos → paramos (evita 7,8,9…)
     }
   }
   return found;
 }
 
-function usePublicGallery(slug, { maxN = 8, exts = DEFAULT_EXTS } = {}) {
+const discoveryCache = new Map(); // slug -> string[]
+
+function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
   const [urls, setUrls] = useState(() => discoveryCache.get(slug) || []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const fromManifest = await fetchManifest(slug);
-      const result = (fromManifest && fromManifest.length > 0)
-        ? fromManifest
-        : await probePublic(slug, { maxN, exts });
+      // 1) ¿Tenemos lista exacta para este slug? úsala y no hagas requests extra.
+      if (KNOWN_PUBLIC_FILES[slug]?.length) {
+        const list = KNOWN_PUBLIC_FILES[slug].map(name => `/services/${slug}/${name}`);
+        if (!cancelled) {
+          discoveryCache.set(slug, list);
+          setUrls(list);
+        }
+        return;
+      }
+
+      // 2) Fallback: probe 1..maxN con el orden de exts definido para el slug
+      const result = await probePublic(slug, { maxN, exts });
       if (!cancelled) {
         discoveryCache.set(slug, result);
         setUrls(result);
@@ -72,6 +70,7 @@ function usePublicGallery(slug, { maxN = 8, exts = DEFAULT_EXTS } = {}) {
     })();
     return () => { cancelled = true; };
   }, [slug, maxN, exts]);
+
   return urls;
 }
 
@@ -190,7 +189,7 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Collage: solo renderiza las URLs reales */}
+            {/* Collage: solo URLs reales (sin 404 jamás) */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {urls.map((url, i) => (
                 <Tile key={url} url={url} alt={`${activo.title} ${i + 1}`} eager={i < 3} contain={false} />
