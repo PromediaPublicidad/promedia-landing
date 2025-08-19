@@ -6,6 +6,8 @@ import TitleSweep from "../components/TitleSweep";
 /* ================ Ajustes globales ================ */
 const CARD_H_MOBILE = 300;
 const CARD_H_DESKTOP = 320;
+const CARD_H_COMPACT_MOBILE = 240;   // Producción (más chico)
+const CARD_H_COMPACT_DESKTOP = 260;
 const DEFAULT_ZOOM  = 1.0;
 
 /* ================ Datos del equipo ================ */
@@ -92,7 +94,7 @@ function PersonCard({ m, tweaks, layout = "carousel", heightClamp }) {
   const wrapperClass =
     layout === "carousel"
       ? "snap-start min-w-[220px] md:min-w-[240px] lg:min-w-[260px]"
-      : "w-full";
+      : "w-full"; // grid: no min-width, fluye en columna
 
   return (
     <motion.article
@@ -153,10 +155,9 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ Grid (Producción: 3 por fila, MISMA altura) ================ */
+/* ================ Grid (Producción: 3 por fila, sin scroll) ================ */
 function Grid({ items, tweaks }) {
-  // misma altura/clamp que el resto
-  const clamp = `clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`;
+  const clamp = `clamp(${CARD_H_COMPACT_MOBILE}px, 24vw, ${CARD_H_COMPACT_DESKTOP}px)`;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map((m) => (
@@ -172,7 +173,7 @@ function Grid({ items, tweaks }) {
   );
 }
 
-/* ================ CEO Spotlight (altura según tu versión) ================ */
+/* ================ CEO Spotlight ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
@@ -322,7 +323,7 @@ function TeamTuner({ members, tweaks, setTweaks }) {
                   zoom: <b>{zoom.toFixed(2)}x</b>
                   <input
                     type="range" min={0.90} max={1.10} step={0.01} value={zoom}
-                  onChange={(e) => setTweaks((prev) => ({ ...prev, [m.id]: { ...(prev[m.id] || {}), zoom: parseFloat(e.target.value) } }))}
+                    onChange={(e) => setTweaks((prev) => ({ ...prev, [m.id]: { ...(prev[m.id] || {}), zoom: parseFloat(e.target.value) } }))}
                     className="w-full"
                   />
                 </label>
@@ -368,16 +369,14 @@ export default function Equipo() {
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
 
-  // Asesoras: una fila horizontal; Marketing: 2 filas con snap; Producción: grid (3 por fila, misma altura)
+  // Asesoras: una fila horizontal; Marketing: 2 filas con snap; Producción: grid (3 por fila)
   const [rowA, rowB] = useMemo(() => {
     if (category === "Asesoras") return [filtered, []];
     const mid = Math.ceil(filtered.length / 2);
     return [filtered.slice(0, mid), filtered.slice(mid)];
   }, [filtered, category]);
 
-  const tunerOn =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("tuneTeam");
+  const tunerOn = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tuneTeam");
 
   return (
     <section id="equipo" className="py-24 px-6 md:px-24 bg-white select-none">
@@ -431,8 +430,10 @@ export default function Equipo() {
       {filtered.length === 0 ? (
         <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
       ) : category === "Producción" ? (
+        // Grid compacto: 3 por fila, todo visible
         <Grid items={filtered} tweaks={tweaks} />
       ) : (
+        // Carrusel con SNAP
         <div className="space-y-8">
           <Row items={rowA} tweaks={tweaks} />
           {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
