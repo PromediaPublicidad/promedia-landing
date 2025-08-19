@@ -6,8 +6,10 @@ import TitleSweep from "../components/TitleSweep";
 /* ================ Ajustes globales ================ */
 const CARD_H_MOBILE = 300;
 const CARD_H_DESKTOP = 320;
-const DEFAULT_POS_Y = "60%"; // legacy (lo ignoro si hay shiftY)
 const DEFAULT_ZOOM  = 1.0;
+
+/* Extra altura solo para el CEO (evita cortar la cabeza sin tocar zoom) */
+const CEO_EXTRA_HEADROOM = 60; // píxeles extra de alto en el spotlight
 
 /* ================ Datos del equipo ================ */
 const MEMBERS = [
@@ -45,7 +47,7 @@ const SUBFILTERS = {
 /* ================ Tweaks (shiftY/zoom) ================ */
 /* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
-  1:  { shiftY: 18, zoom: 1.00 }, // CEO: más abajo
+  1:  { shiftY: 18, zoom: 1.00 }, // CEO: posición que te gusta (headroom lo da el frame)
   2:  { shiftY: -4, zoom: 1.00 },
   3:  { shiftY:  1, zoom: 1.00 },
   4:  { shiftY:  4, zoom: 1.00 },
@@ -157,7 +159,7 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ CEO Spotlight (mismo motor) ================ */
+/* ================ CEO Spotlight (con headroom extra) ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
@@ -175,7 +177,7 @@ function CEOSpotlight({ person, tweaks }) {
       <div className="grid md:grid-cols-2 gap-0">
         <div className="relative">
           <CropFrame
-            height={`clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px)`}
+            height={`clamp(${CARD_H_MOBILE + 80 + CEO_EXTRA_HEADROOM}px, 36vw, ${CARD_H_DESKTOP + 120 + CEO_EXTRA_HEADROOM}px)`}
             src={person.img}
             alt={person.name}
             shiftY={shiftY}
@@ -217,13 +219,14 @@ function TeamTuner({ members, tweaks, setTweaks }) {
     return members.filter((m) => m.category === filter || (filter === "CEO" && m.category === "CEO"));
   }, [members, filter]);
 
+  const DEFAULT_POS_Y = "60%"; // legacy solo para UI del tuner
+
   const toJSON = () => {
     const out = {};
     for (const m of members) {
       const t = tweaks[m.id];
       if (!t) continue;
       if (typeof t.shiftY === "number" && t.shiftY !== 0) out[m.id] = { ...(out[m.id] || {}), shiftY: t.shiftY };
-      if (t.posY && t.posY !== DEFAULT_POS_Y) out[m.id] = { ...(out[m.id] || {}), posY: t.posY };
       if (typeof t.zoom === "number" && t.zoom !== DEFAULT_ZOOM) out[m.id] = { ...(out[m.id] || {}), zoom: Number(t.zoom.toFixed(2)) };
     }
     return JSON.stringify(out, null, 2);
@@ -258,7 +261,6 @@ function TeamTuner({ members, tweaks, setTweaks }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {list.map((m) => {
           const t = tweaks[m.id] || {};
-          const posY = parseInt((t.posY || DEFAULT_POS_Y).replace("%", ""), 10);
           const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
           const zoom = typeof t.zoom === "number" ? t.zoom : DEFAULT_ZOOM;
 
@@ -274,7 +276,6 @@ function TeamTuner({ members, tweaks, setTweaks }) {
                   className="w-full object-cover select-none"
                   style={{
                     height: 260,
-                    objectPosition: "50% 50%",
                     transform: `translateY(${shiftY}%) scale(${zoom})`,
                     transformOrigin: "50% 50%",
                   }}
@@ -302,14 +303,6 @@ function TeamTuner({ members, tweaks, setTweaks }) {
                   <input
                     type="range" min={-20} max={20} step={1} value={shiftY}
                     onChange={(e) => setTweaks((prev) => ({ ...prev, [m.id]: { ...(prev[m.id] || {}), shiftY: parseInt(e.target.value, 10) } }))}
-                    className="w-full"
-                  />
-                </label>
-                <label className="text-xs">
-                  posY: <b>{posY}%</b>
-                  <input
-                    type="range" min={45} max={85} step={1} value={posY}
-                    onChange={(e) => setTweaks((prev) => ({ ...prev, [m.id]: { ...(prev[m.id] || {}), posY: `${e.target.value}%` } }))}
                     className="w-full"
                   />
                 </label>
