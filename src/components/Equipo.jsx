@@ -6,6 +6,8 @@ import TitleSweep from "../components/TitleSweep";
 /* ================ Ajustes globales ================ */
 const CARD_H_MOBILE = 300;
 const CARD_H_DESKTOP = 320;
+const CARD_H_COMPACT_MOBILE = 240;   // Producción (más chico)
+const CARD_H_COMPACT_DESKTOP = 260;
 const DEFAULT_ZOOM  = 1.0;
 
 /* ================ Datos del equipo ================ */
@@ -83,28 +85,28 @@ function CropFrame({ height, src, alt, shiftY = 0, zoom = 1, eager = false, chil
 }
 
 /* ================ Card de persona ================ */
-function PersonCard({ m, tweaks }) {
+function PersonCard({ m, tweaks, layout = "carousel", heightClamp }) {
   const t = tweaks[m.id] || {};
   const zoom = typeof t.zoom === "number" ? t.zoom : DEFAULT_ZOOM;
   const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
+
+  const clamp = heightClamp || `clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`;
+  const wrapperClass =
+    layout === "carousel"
+      ? "snap-start min-w-[220px] md:min-w-[240px] lg:min-w-[260px]"
+      : "w-full"; // grid: no min-width, fluye en columna
 
   return (
     <motion.article
       key={m.id}
       aria-label={`${m.name} – ${m.role}`}
-      className="snap-start min-w-[220px] md:min-w-[240px] lg:min-w-[260px] relative group rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5 bg-white"
+      className={`${wrapperClass} relative group rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5 bg-white`}
       initial={{ opacity: 0, scale: 0.94, y: 8 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.35 }}
     >
-      <CropFrame
-        height={`clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`}
-        src={m.img}
-        alt={m.name}
-        shiftY={shiftY}
-        zoom={zoom}
-      >
+      <CropFrame height={clamp} src={m.img} alt={m.name} shiftY={shiftY} zoom={zoom}>
         <div className="absolute inset-x-0 bottom-0 p-4">
           <div
             className="rounded-xl px-3 py-2"
@@ -130,7 +132,7 @@ function PersonCard({ m, tweaks }) {
   );
 }
 
-/* ================ Row con snap ================ */
+/* ================ Row con snap (Marketing / Asesoras) ================ */
 function Row({ items, tweaks }) {
   return (
     <div
@@ -145,7 +147,7 @@ function Row({ items, tweaks }) {
       <div className="w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory snap-always">
         <div className="flex gap-6 w-max px-6 py-4">
           {items.map((m) => (
-            <PersonCard key={m.id} m={m} tweaks={tweaks} />
+            <PersonCard key={m.id} m={m} tweaks={tweaks} layout="carousel" />
           ))}
         </div>
       </div>
@@ -153,7 +155,25 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ CEO Spotlight (altura según tu versión) ================ */
+/* ================ Grid (Producción: 3 por fila, sin scroll) ================ */
+function Grid({ items, tweaks }) {
+  const clamp = `clamp(${CARD_H_COMPACT_MOBILE}px, 24vw, ${CARD_H_COMPACT_DESKTOP}px)`;
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {items.map((m) => (
+        <PersonCard
+          key={m.id}
+          m={m}
+          tweaks={tweaks}
+          layout="grid"
+          heightClamp={clamp}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ================ CEO Spotlight ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
@@ -250,6 +270,7 @@ function TeamTuner({ members, tweaks, setTweaks }) {
         </button>
       </div>
 
+      {/* preview de ajustes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {list.map((m) => {
           const t = tweaks[m.id] || {};
@@ -339,11 +360,6 @@ export default function Equipo() {
   const [tweaks, setTweaks] = useState(INITIAL_TWEAKS);
 
   const CEO = useMemo(() => MEMBERS.find((m) => m.category === "CEO"), []);
-  const countsByCat = useMemo(() => {
-    const map = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
-    for (const m of MEMBERS) if (map[m.category] !== undefined) map[m.category]++;
-    return map;
-  }, []);
 
   const filtered = useMemo(() => {
     const base = MEMBERS
@@ -353,18 +369,14 @@ export default function Equipo() {
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
 
-  // ⬇️ NUEVO: Asesoras en una sola fila; el resto se divide en 2 filas como antes
+  // Asesoras: una fila horizontal; Marketing: 2 filas con snap; Producción: grid (3 por fila)
   const [rowA, rowB] = useMemo(() => {
-    if (category === "Asesoras") {
-      return [filtered, []]; // una fila horizontal con las dos asesoras
-    }
+    if (category === "Asesoras") return [filtered, []];
     const mid = Math.ceil(filtered.length / 2);
     return [filtered.slice(0, mid), filtered.slice(mid)];
   }, [filtered, category]);
 
-  const tunerOn =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("tuneTeam");
+  const tunerOn = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tuneTeam");
 
   return (
     <section id="equipo" className="py-24 px-6 md:px-24 bg-white select-none">
@@ -377,26 +389,20 @@ export default function Equipo() {
       {/* CEO destacado */}
       <CEOSpotlight person={CEO} tweaks={tweaks} />
 
-      {/* Tabs por categoría */}
+      {/* Tabs por categoría (sin conteos) */}
       <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
         {CATEGORIES.map((cat) => {
           const active = category === cat;
-          const count = countsByCat[cat] ?? 0;
           return (
             <button
               key={cat}
-              onClick={() => {
-                setCategory(cat);
-                setSubfilter("Todos");
-              }}
+              onClick={() => { setCategory(cat); setSubfilter("Todos"); }}
               className={[
                 "px-4 py-2 rounded-full text-sm font-medium transition",
-                active
-                  ? "bg-[#167c88] text-white shadow"
-                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
               ].join(" ")}
             >
-              {cat} <span className="opacity-70">({count})</span>
+              {cat}
             </button>
           );
         })}
@@ -411,9 +417,7 @@ export default function Equipo() {
               onClick={() => setSubfilter(f)}
               className={[
                 "px-3 py-1.5 rounded-full text-xs font-medium transition",
-                subfilter === f
-                  ? "bg-black text-white"
-                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                subfilter === f ? "bg-black text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
               ].join(" ")}
             >
               {f}
@@ -422,12 +426,14 @@ export default function Equipo() {
         </div>
       )}
 
-      {/* Carrusel con SNAP */}
+      {/* Vista por categoría */}
       {filtered.length === 0 ? (
-        <div className="text-center text-neutral-500 py-16">
-          No hay personas en este filtro.
-        </div>
+        <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
+      ) : category === "Producción" ? (
+        // Grid compacto: 3 por fila, todo visible
+        <Grid items={filtered} tweaks={tweaks} />
       ) : (
+        // Carrusel con SNAP
         <div className="space-y-8">
           <Row items={rowA} tweaks={tweaks} />
           {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
@@ -435,9 +441,7 @@ export default function Equipo() {
       )}
 
       {/* Editor oculto (activar con ?tuneTeam=1) */}
-      {tunerOn && (
-        <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />
-      )}
+      {tunerOn && <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />}
     </section>
   );
 }
