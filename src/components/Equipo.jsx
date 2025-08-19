@@ -155,10 +155,8 @@ function chunkInTwo(arr) {
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
-  const zoom = typeof t.zoom === "number" ? t.zoom : 1.0;
-  const hasShift = typeof t.shiftY === "number";
-  const posY = t.posY || "70%";
-  const translateY = hasShift ? t.shiftY : 0;
+  const zoom = typeof t.zoom === "number" ? t.zoom : 1;
+  const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
 
   return (
     <motion.div
@@ -170,33 +168,25 @@ function CEOSpotlight({ person, tweaks }) {
     >
       <div className="grid md:grid-cols-2 gap-0">
         <div className="relative">
-          <img
+          <CropFrame
+            height={`clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px)`}
             src={person.img}
             alt={person.name}
-            className="w-full object-cover will-change-transform select-none"
-            style={{
-              height: `clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px)`,
-              objectPosition: hasShift ? "50% 50%" : `50% ${posY}`,
-              transform: `translateY(${translateY}%) scale(${zoom})`,
-              transformOrigin: "50% 50%",
-            }}
-            loading="eager"
-            draggable={false}
-          />
-          <div className="absolute top-4 left-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#167c88] text-white shadow">
-              {person.role}
-            </span>
-          </div>
+            shiftY={shiftY}
+            zoom={zoom}
+            eager
+          >
+            <div className="absolute top-4 left-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#167c88] text-white shadow">
+                {person.role}
+              </span>
+            </div>
+          </CropFrame>
         </div>
 
         <div className="flex flex-col justify-center p-8 md:p-10">
-          <h3 className="text-2xl md:text-3xl font-bold text-neutral-900">
-            {person.name}
-          </h3>
-          <p className="mt-2 text-neutral-600">
-            Liderando la visión y la calidad de Promedia.
-          </p>
+          <h3 className="text-2xl md:text-3xl font-bold text-neutral-900">{person.name}</h3>
+          <p className="mt-2 text-neutral-600">Liderando la visión y la calidad de Promedia.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <span className="px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 text-xs">Dirección</span>
             <span className="px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 text-xs">Estrategia</span>
