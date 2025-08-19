@@ -6,8 +6,6 @@ import TitleSweep from "../components/TitleSweep";
 /* ================ Ajustes globales ================ */
 const CARD_H_MOBILE = 300;
 const CARD_H_DESKTOP = 320;
-const CARD_H_COMPACT_MOBILE = 240;   // Producción (más chico)
-const CARD_H_COMPACT_DESKTOP = 260;
 const DEFAULT_ZOOM  = 1.0;
 
 /* ================ Datos del equipo ================ */
@@ -44,6 +42,7 @@ const SUBFILTERS = {
 };
 
 /* ================ Tweaks (shiftY/zoom) ================ */
+/* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
   1:  { shiftY: 18, zoom: 1.00 }, // CEO
   2:  { shiftY: -4, zoom: 1.00 },
@@ -85,28 +84,29 @@ function CropFrame({ height, src, alt, shiftY = 0, zoom = 1, eager = false, chil
 }
 
 /* ================ Card de persona ================ */
-function PersonCard({ m, tweaks, layout = "carousel", heightClamp }) {
+function PersonCard({ m, tweaks }) {
   const t = tweaks[m.id] || {};
   const zoom = typeof t.zoom === "number" ? t.zoom : DEFAULT_ZOOM;
   const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
-
-  const clamp = heightClamp || `clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`;
-  const wrapperClass =
-    layout === "carousel"
-      ? "snap-start min-w-[220px] md:min-w-[240px] lg:min-w-[260px]"
-      : "w-full"; // grid: no min-width, fluye en columna
 
   return (
     <motion.article
       key={m.id}
       aria-label={`${m.name} – ${m.role}`}
-      className={`${wrapperClass} relative group rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5 bg-white`}
+      className="snap-start min-w-[220px] md:min-w-[240px] lg:min-w-[260px] relative group rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5 bg-white"
       initial={{ opacity: 0, scale: 0.94, y: 8 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.35 }}
     >
-      <CropFrame height={clamp} src={m.img} alt={m.name} shiftY={shiftY} zoom={zoom}>
+      <CropFrame
+        height={`clamp(${CARD_H_MOBILE}px, 28vw, ${CARD_H_DESKTOP}px)`}
+        src={m.img}
+        alt={m.name}
+        shiftY={shiftY}
+        zoom={zoom}
+      >
+        {/* Blur alineado al texto */}
         <div className="absolute inset-x-0 bottom-0 p-4">
           <div
             className="rounded-xl px-3 py-2"
@@ -124,6 +124,7 @@ function PersonCard({ m, tweaks, layout = "carousel", heightClamp }) {
           </div>
         </div>
 
+        {/* Micro chip */}
         <div className="absolute top-3 right-3 rounded-full bg-white/85 backdrop-blur px-2 py-1 text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition">
           Team
         </div>
@@ -132,7 +133,7 @@ function PersonCard({ m, tweaks, layout = "carousel", heightClamp }) {
   );
 }
 
-/* ================ Row con snap (Marketing / Asesoras) ================ */
+/* ================ Row con snap ================ */
 function Row({ items, tweaks }) {
   return (
     <div
@@ -147,7 +148,7 @@ function Row({ items, tweaks }) {
       <div className="w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory snap-always">
         <div className="flex gap-6 w-max px-6 py-4">
           {items.map((m) => (
-            <PersonCard key={m.id} m={m} tweaks={tweaks} layout="carousel" />
+            <PersonCard key={m.id} m={m} tweaks={tweaks} />
           ))}
         </div>
       </div>
@@ -155,25 +156,7 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ Grid (Producción: 3 por fila, sin scroll) ================ */
-function Grid({ items, tweaks }) {
-  const clamp = `clamp(${CARD_H_COMPACT_MOBILE}px, 24vw, ${CARD_H_COMPACT_DESKTOP}px)`;
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {items.map((m) => (
-        <PersonCard
-          key={m.id}
-          m={m}
-          tweaks={tweaks}
-          layout="grid"
-          heightClamp={clamp}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ================ CEO Spotlight ================ */
+/* ================ CEO Spotlight (más header: +3in en alto del frame) ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
@@ -191,11 +174,12 @@ function CEOSpotlight({ person, tweaks }) {
       <div className="grid md:grid-cols-2 gap-0">
         <div className="relative">
           <CropFrame
+            /* altura original + 3 inches de headroom */
             height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 0in)`}
             src={person.img}
             alt={person.name}
-            shiftY={shiftY}
-            zoom={zoom}
+            shiftY={shiftY}  // 18
+            zoom={zoom}      // 1.00
             eager
           >
             <div className="absolute top-4 left-4">
@@ -270,7 +254,6 @@ function TeamTuner({ members, tweaks, setTweaks }) {
         </button>
       </div>
 
-      {/* preview de ajustes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {list.map((m) => {
           const t = tweaks[m.id] || {};
@@ -360,6 +343,11 @@ export default function Equipo() {
   const [tweaks, setTweaks] = useState(INITIAL_TWEAKS);
 
   const CEO = useMemo(() => MEMBERS.find((m) => m.category === "CEO"), []);
+  const countsByCat = useMemo(() => {
+    const map = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
+    for (const m of MEMBERS) if (map[m.category] !== undefined) map[m.category]++;
+    return map;
+  }, []);
 
   const filtered = useMemo(() => {
     const base = MEMBERS
@@ -369,12 +357,10 @@ export default function Equipo() {
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
 
-  // Asesoras: una fila horizontal; Marketing: 2 filas con snap; Producción: grid (3 por fila)
   const [rowA, rowB] = useMemo(() => {
-    if (category === "Asesoras") return [filtered, []];
     const mid = Math.ceil(filtered.length / 2);
     return [filtered.slice(0, mid), filtered.slice(mid)];
-  }, [filtered, category]);
+  }, [filtered]);
 
   const tunerOn = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tuneTeam");
 
@@ -389,10 +375,11 @@ export default function Equipo() {
       {/* CEO destacado */}
       <CEOSpotlight person={CEO} tweaks={tweaks} />
 
-      {/* Tabs por categoría (sin conteos) */}
+      {/* Tabs por categoría */}
       <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
         {CATEGORIES.map((cat) => {
           const active = category === cat;
+          const count = countsByCat[cat] ?? 0;
           return (
             <button
               key={cat}
@@ -402,7 +389,7 @@ export default function Equipo() {
                 active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
               ].join(" ")}
             >
-              {cat}
+              {cat} <span className="opacity-70">({count})</span>
             </button>
           );
         })}
@@ -426,14 +413,10 @@ export default function Equipo() {
         </div>
       )}
 
-      {/* Vista por categoría */}
+      {/* Carrusel con SNAP (dos filas) */}
       {filtered.length === 0 ? (
         <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
-      ) : category === "Producción" ? (
-        // Grid compacto: 3 por fila, todo visible
-        <Grid items={filtered} tweaks={tweaks} />
       ) : (
-        // Carrusel con SNAP
         <div className="space-y-8">
           <Row items={rowA} tweaks={tweaks} />
           {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
