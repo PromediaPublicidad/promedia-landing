@@ -343,11 +343,6 @@ export default function Equipo() {
   const [tweaks, setTweaks] = useState(INITIAL_TWEAKS);
 
   const CEO = useMemo(() => MEMBERS.find((m) => m.category === "CEO"), []);
-  const countsByCat = useMemo(() => {
-    const map = Object.fromEntries(CATEGORIES.map((c) => [c, 0]));
-    for (const m of MEMBERS) if (map[m.category] !== undefined) map[m.category]++;
-    return map;
-  }, []);
 
   const filtered = useMemo(() => {
     const base = MEMBERS
@@ -375,11 +370,10 @@ export default function Equipo() {
       {/* CEO destacado */}
       <CEOSpotlight person={CEO} tweaks={tweaks} />
 
-      {/* Tabs por categoría */}
+      {/* Tabs por categoría (sin conteos) */}
       <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
         {CATEGORIES.map((cat) => {
           const active = category === cat;
-          const count = countsByCat[cat] ?? 0;
           return (
             <button
               key={cat}
@@ -389,7 +383,7 @@ export default function Equipo() {
                 active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
               ].join(" ")}
             >
-              {cat} <span className="opacity-70">({count})</span>
+              {cat}
             </button>
           );
         })}
