@@ -2,24 +2,40 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
-/* ========== Descubrimiento sin 404 para /public/services/<slug>/ ========== */
-const discoveryCache = new Map(); // slug -> string[] (urls)
+/* =================== Descubrimiento SIN 404 (public/services/<slug>/) =================== */
+/* Cache simple por sesión (slug -> string[]) */
+const discoveryCache = new Map();
 
+/* Orden de extensiones por categoría. Para "branding" NO probamos webp. */
+const DEFAULT_EXTS = ['webp','jpg','jpeg','png'];
+const EXT_ORDER = {
+  branding: ['jpg','jpeg','png'],
+  // gigantografia: ['webp','jpg','jpeg','png'],
+  // produccion-visual: ['webp','jpg','jpeg','png'],
+  // ...
+};
+
+/* (Opcional) Si agregas un manifest en public/services/<slug>/manifest.json,
+   lo leemos primero. Ejemplo de manifest:
+   ["1.jpg","2.png","3.jpeg"]
+*/
 async function fetchManifest(slug) {
   try {
     const res = await fetch(`/services/${slug}/manifest.json`, { cache: 'no-store' });
     if (!res.ok) return null;
-    const list = await res.json(); // ej: ["1.webp","2.jpg",...]
+    const list = await res.json();
     if (!Array.isArray(list)) return null;
-    // normaliza a URLs absolutas
     return list.map((name) => `/services/${slug}/${name}`);
   } catch {
     return null;
   }
 }
 
-async function probePublic(slug, { maxN = 8, exts = ['webp','jpg','jpeg','png'] } = {}) {
+/* Explora 1..maxN probando exts en orden, sin spamear la consola.
+   Corta si hay 3 misses seguidos. Usa HEAD para no “romper” la vista. */
+async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {}) {
   const found = [];
+  let misses = 0;
   for (let n = 1; n <= maxN; n++) {
     let hit = null;
     for (const ext of exts) {
@@ -27,23 +43,26 @@ async function probePublic(slug, { maxN = 8, exts = ['webp','jpg','jpeg','png'] 
       try {
         const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
         if (res.ok) { hit = url; break; }
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     }
-    if (hit) found.push(hit);
+    if (hit) {
+      found.push(hit);
+      misses = 0;
+    } else {
+      misses++;
+      if (misses >= 3) break; // no encontramos nada por un rato: paramos
+    }
   }
   return found;
 }
 
-function usePublicGallery(slug, { maxN = 8, exts = ['webp','jpg','jpeg','png'] } = {}) {
+function usePublicGallery(slug, { maxN = 8, exts = DEFAULT_EXTS } = {}) {
   const [urls, setUrls] = useState(() => discoveryCache.get(slug) || []);
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // 1) manifest.json si existe
       const fromManifest = await fetchManifest(slug);
-      const result = fromManifest && fromManifest.length > 0
+      const result = (fromManifest && fromManifest.length > 0)
         ? fromManifest
         : await probePublic(slug, { maxN, exts });
       if (!cancelled) {
@@ -56,7 +75,7 @@ function usePublicGallery(slug, { maxN = 8, exts = ['webp','jpg','jpeg','png'] }
   return urls;
 }
 
-/* ========== UI helpers ========== */
+/* =================== UI helpers =================== */
 function Tile({ url, alt, eager = false, contain = false }) {
   if (!url) return null;
   return (
@@ -74,7 +93,7 @@ function Tile({ url, alt, eager = false, contain = false }) {
   );
 }
 
-/* ========== Data ========== */
+/* =================== Data =================== */
 const servicios = [
   { icon: <Palette size={28} />, title: 'Branding & Diseño',        desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
   { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
@@ -99,13 +118,14 @@ const meta = {
   personalizados:      { descripcion: 'Soluciones a tu medida.',              tags: ['Prototipo', 'Iterativo', 'Acompañamiento', 'Entrega guiada'] }
 };
 
+/* =================== Componente =================== */
 export default function Servicios() {
   const [active, setActive] = useState(servicios[0].slug);
   const activo = useMemo(() => servicios.find(s => s.slug === active), [active]);
   const info = meta[active] || { descripcion: '', tags: [] };
 
-  // Descubre las URLs disponibles en /public/services/<slug>/ SIN generar 404
-  const urls = usePublicGallery(active, { maxN: 8 });
+  const exts = EXT_ORDER[active] ?? DEFAULT_EXTS;
+  const urls = usePublicGallery(active, { maxN: 12, exts });
 
   return (
     <section id="servicios" className="relative bg-[#0f1f25] py-24 px-6 md:px-10 xl:pl-[96px] 2xl:pl-[112px]">
@@ -170,7 +190,7 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Collage: solo renderiza las URLs que existen */}
+            {/* Collage: solo renderiza las URLs reales */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {urls.map((url, i) => (
                 <Tile key={url} url={url} alt={`${activo.title} ${i + 1}`} eager={i < 3} contain={false} />
