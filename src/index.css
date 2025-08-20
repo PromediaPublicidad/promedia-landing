@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+
+body * { outline: 1px dashed rgba(22,124,136,.15); }
 /* =========== Resets sanos =========== */
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; }

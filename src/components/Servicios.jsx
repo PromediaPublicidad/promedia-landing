@@ -1,18 +1,20 @@
+// src/sections/Servicios.jsx
 import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
 /* =================== Catálogo exacto (sin 404) =================== */
 const KNOWN_PUBLIC_FILES = {
-  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"],
+  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"], // lo que tienes hoy
 };
 
+/* Orden de extensiones por categoría (solo para probes de otros slugs) */
 const DEFAULT_EXTS = ['webp','jpg','jpeg','png'];
 const EXT_ORDER = {
-  branding: ['jpg','jpeg','png'],
+  branding: ['jpg','jpeg','png'], // no se usa si está en KNOWN_PUBLIC_FILES, lo dejo por claridad
 };
 
-/* =================== Descubrimiento con HEAD (fallback) =================== */
+/* =================== Descubrimiento con HEAD (solo si NO hay KNOWN_PUBLIC_FILES[slug]) =================== */
 async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {}) {
   const found = [];
   let seenAny = false;
@@ -35,7 +37,7 @@ async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {})
   return found;
 }
 
-const discoveryCache = new Map();
+const discoveryCache = new Map(); // slug -> string[]
 
 function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
   const [urls, setUrls] = useState(() => discoveryCache.get(slug) || []);
@@ -117,13 +119,12 @@ export default function Servicios() {
 
   return (
     <section id="servicios" className="relative bg-[#0f1f25] overflow-x-clip">
-      {/* Glows decorativos (sin mask-image) */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-[#167c88]/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
+      {/* Glow de fondo */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]">
+        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-[#167c88]/10 blur-3xl"/>
+        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"/>
       </div>
 
-      {/* Contenedor centrado */}
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-24 relative z-10">
         <div className="text-center mb-12">
           <h3 className="text-4xl font-bold mb-4 text-[#167c88]">Nuestros Servicios</h3>
@@ -180,7 +181,7 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Collage: solo URLs reales */}
+            {/* Collage: solo URLs reales (sin 404 jamás) */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {urls.map((url, i) => (
                 <Tile key={url} url={url} alt={`${activo.title} ${i + 1}`} eager={i < 3} contain={false} />

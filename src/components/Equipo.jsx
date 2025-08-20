@@ -70,11 +70,8 @@ function CropFrame({ height, src, alt, shiftY = 0, zoom = 1, eager = false, chil
       <img
         src={src}
         alt={alt}
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{
-          transform: `translateY(${shiftY}%) scale(${zoom})`,
-          transformOrigin: "50% 50%"
-        }}
+        className="absolute inset-0 w-full h-full object-cover will-change-transform"
+        style={{ transform: `translateY(${shiftY}%) scale(${zoom})`, transformOrigin: "50% 50%" }}
         loading={eager ? "eager" : "lazy"}
         draggable={false}
       />
@@ -106,7 +103,6 @@ function PersonCard({ m, tweaks }) {
         shiftY={shiftY}
         zoom={zoom}
       >
-        {/* Blur alineado al texto */}
         <div className="absolute inset-x-0 bottom-0 p-4">
           <div
             className="rounded-xl px-3 py-2"
@@ -124,7 +120,6 @@ function PersonCard({ m, tweaks }) {
           </div>
         </div>
 
-        {/* Micro chip */}
         <div className="absolute top-3 right-3 rounded-full bg-white/85 backdrop-blur px-2 py-1 text-[10px] font-medium text-neutral-700 opacity-0 group-hover:opacity-100 transition">
           Team
         </div>
@@ -133,14 +128,18 @@ function PersonCard({ m, tweaks }) {
   );
 }
 
-/* ================ Row con SNAP (sin mask-image: usamos fades) ================ */
+/* ================ Row con snap ================ */
 function Row({ items, tweaks }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl isolate">
-      {/* Fades en bordes (no usan mask → no rompen el compositing a 90% zoom) */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10" />
-
+    <div
+      className="relative overflow-hidden rounded-3xl"
+      style={{
+        maskImage:
+          "linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%)",
+        WebkitMaskImage:
+          "linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%)",
+      }}
+    >
       <div className="w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory snap-always">
         <div className="flex gap-6 w-max px-6 py-4">
           {items.map((m) => (
@@ -238,8 +237,7 @@ function TeamTuner({ members, tweaks, setTweaks }) {
             onClick={() => setFilter(c)}
             className={[
               "px-3 py-1.5 rounded-full text-xs font-medium",
-              "bg-white text-neutral-700 border",
-              filter === c && "bg-black text-white"
+              filter === c ? "bg-black text-white" : "bg-white text-neutral-700 border",
             ].join(" ")}
           >
             {c}
@@ -266,11 +264,7 @@ function TeamTuner({ members, tweaks, setTweaks }) {
                   src={m.img}
                   alt={m.name}
                   className="w-full object-cover select-none"
-                  style={{
-                    height: 260,
-                    transform: `translateY(${shiftY}%) scale(${zoom})`,
-                    transformOrigin: "50% 50%",
-                  }}
+                  style={{ height: 260, transform: `translateY(${shiftY}%) scale(${zoom})`, transformOrigin: "50% 50%" }}
                   draggable={false}
                 />
                 <div className="absolute inset-x-0 bottom-0 p-3">
@@ -332,7 +326,7 @@ function TeamTuner({ members, tweaks, setTweaks }) {
   );
 }
 
-/* ================ Componente principal (alineado al layout) ================ */
+/* ================ Componente principal ================ */
 export default function Equipo() {
   const [category, setCategory] = useState("Marketing");
   const [subfilter, setSubfilter] = useState("Todos");
@@ -358,7 +352,7 @@ export default function Equipo() {
     new URLSearchParams(window.location.search).has("tuneTeam");
 
   return (
-    <section id="equipo" className="relative bg-white select-none overflow-x-clip">
+    <section id="equipo" className="relative bg-white overflow-x-clip select-none">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-24">
         <h2 className="text-4xl font-bold text-center mb-10">
           <TitleSweep color="#167c88" dir="rtl" duration={1.0} textFrom="#167c88" textTo="#ffffff">
