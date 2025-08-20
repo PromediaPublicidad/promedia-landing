@@ -1,14 +1,24 @@
 @import "tailwindcss";
 
-
-body * { outline: 1px dashed rgba(22,124,136,.15); }
-/* =========== Resets sanos =========== */
+/* ===== Resets & guardrails ===== */
 *, *::before, *::after { box-sizing: border-box; }
-html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  background: #ffffff; /* fondo consistente para que no aparezcan “bordes fantasma” */
+}
 
 /* Suavidad de scroll + offset para header sticky */
 :root { --header-h: 72px; }
-html { scroll-behavior: smooth; scrollbar-gutter: stable both-edges; }
+html {
+  scroll-behavior: smooth;
+  /* Reservar gutter solo del lado del scrollbar, NO a ambos lados */
+  scrollbar-gutter: stable; /* ← antes: stable both-edges */
+}
 [id] { scroll-margin-top: var(--header-h); }
 
 /* Render nítido y SIN scroll lateral global */
@@ -23,11 +33,15 @@ body {
 #root { isolation: isolate; }
 
 /* Medios nunca rompen el layout */
-img, video, canvas, svg { display: block; max-width: 100%; height: auto; }
+img, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
 
-/* =========== Utilidades pequeñas =========== */
-.overflow-x-clip { overflow-x: clip; }          /* por si alguna sección trae decoraciones absolute */
-.vw-safe        { width: min(100%, 100dvw); }   /* evita empujes por barra de scroll */
+/* ===== Utilidades anti-overflow ===== */
+.overflow-x-clip { overflow-x: clip; }
+.vw-safe        { width: min(100%, 100dvw); }
 
 /* Tipografía custom (ajusta ruta si cambia) */
 @font-face {
@@ -37,14 +51,12 @@ img, video, canvas, svg { display: block; max-width: 100%; height: auto; }
   font-style: normal;
 }
 
-/* =========== Marquees legacy (DESACTIVADOS) =========== */
-/* Ya migramos Alianzas/Collage a Framer Motion. 
-   Si algún componente antiguo sigue usando estas clases, déjalas sin mask para que no rompan el zoom 90%. */
+/* ===== Marquee / Collage (sin masks agresivas para evitar glitches a 90%) ===== */
 .marquee,
 .collage-marquee {
   position: relative;
   overflow: hidden;
-  /* ❌ sin mask-image para evitar glitches al 90% de zoom */
+  /* sin mask-image aquí para evitar artefactos con zooms raros */
 }
 
 .marquee__track,
@@ -55,8 +67,5 @@ img, video, canvas, svg { display: block; max-width: 100%; height: auto; }
   backface-visibility: hidden;
 }
 
-/* No definimos @keyframes aquí; los nuevos usan Framer Motion. */
-
-/* =========== Importante: sin hacks que rompan el body =========== */
-/* ❌ Nada de: body { padding-right: 0 !important; } 
-      Eso anulaba la compensación del drawer y podía crear “saltos” y desalinear todo. */
+/* Nada de outlines globales de debug.
+   (Antes había: body * { outline: 1px dashed rgba(22,124,136,.15); }) */
