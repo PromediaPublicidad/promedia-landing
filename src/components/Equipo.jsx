@@ -44,23 +44,23 @@ const SUBFILTERS = {
 /* ================ Tweaks (shiftY/zoom) ================ */
 /* shiftY en %: + baja la imagen, - la sube. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
-  1:  { shiftY: -10,  zoom: 1.00 }, // CEO: subimos la imagen (antes 18)
-  2:  { shiftY: -4, zoom: 1.00 },
-  3:  { shiftY:  1, zoom: 1.00 },
-  4:  { shiftY:  4, zoom: 1.00 },
-  5:  { shiftY:  3, zoom: 0.95 },
-  6:  { shiftY:  4, zoom: 0.96 },
-  7:  { shiftY:  4, zoom: 0.96 },
-  8:  { shiftY:  2, zoom: 1.00 },
-  9:  { shiftY:  5, zoom: 0.95 },
-  10: { shiftY:  3, zoom: 1.00 },
-  11: { shiftY:  4, zoom: 1.00 },
-  12: { shiftY:  2, zoom: 1.00 },
-  13: { shiftY:  6, zoom: 1.00 },
-  14: { shiftY:  2, zoom: 1.00 },
-  15: { shiftY:  1, zoom: 1.00 },
-  16: { shiftY:  5, zoom: 1.00 },
-  17: { shiftY:  2, zoom: 1.00 },
+  1:  { shiftY: -10, zoom: 1.00 }, // CEO ajustado
+  2:  { shiftY: -4,  zoom: 1.00 },
+  3:  { shiftY:  1,  zoom: 1.00 },
+  4:  { shiftY:  4,  zoom: 1.00 },
+  5:  { shiftY:  3,  zoom: 0.95 },
+  6:  { shiftY:  4,  zoom: 0.96 },
+  7:  { shiftY:  4,  zoom: 0.96 },
+  8:  { shiftY:  2,  zoom: 1.00 },
+  9:  { shiftY:  5,  zoom: 0.95 },
+  10: { shiftY:  3,  zoom: 1.00 },
+  11: { shiftY:  4,  zoom: 1.00 },
+  12: { shiftY:  2,  zoom: 1.00 },
+  13: { shiftY:  6,  zoom: 1.00 },
+  14: { shiftY:  2,  zoom: 1.00 },
+  15: { shiftY:  1,  zoom: 1.00 },
+  16: { shiftY:  5,  zoom: 1.00 },
+  17: { shiftY:  2,  zoom: 1.00 },
 };
 
 /* ================ Helper: frame fijo + imagen absoluta ================ */
@@ -129,7 +129,11 @@ function PersonCard({ m, tweaks }) {
 }
 
 /* ================ Row con snap ================ */
-function Row({ items, tweaks }) {
+function Row({ items, tweaks, center = false }) {
+  const innerClass = center
+    ? "flex gap-6 px-6 py-4 justify-center min-w-full"
+    : "flex gap-6 w-max px-6 py-4";
+
   return (
     <div
       className="relative overflow-hidden rounded-3xl"
@@ -141,7 +145,7 @@ function Row({ items, tweaks }) {
       }}
     >
       <div className="w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory snap-always">
-        <div className="flex gap-6 w-max px-6 py-4">
+        <div className={innerClass}>
           {items.map((m) => (
             <PersonCard key={m.id} m={m} tweaks={tweaks} />
           ))}
@@ -342,9 +346,11 @@ export default function Equipo() {
     return base.filter((m) => m.role === subfilter);
   }, [category, subfilter]);
 
-  const [rowA, rowB] = useMemo(() => {
+  // ⬇️ Si hay 3 o menos personas (p.ej., Asesoras=2), mostramos TODO en una sola fila centrada.
+  const [rowA, rowB, centerSmall] = useMemo(() => {
+    if (filtered.length <= 3) return [filtered, [], true];
     const mid = Math.ceil(filtered.length / 2);
-    return [filtered.slice(0, mid), filtered.slice(mid)];
+    return [filtered.slice(0, mid), filtered.slice(mid), false];
   }, [filtered]);
 
   const tunerOn =
@@ -400,12 +406,12 @@ export default function Equipo() {
           </div>
         )}
 
-        {/* Carrusel con SNAP (dos filas) */}
+        {/* Carrusel con SNAP */}
         {filtered.length === 0 ? (
           <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
         ) : (
           <div className="space-y-8">
-            <Row items={rowA} tweaks={tweaks} />
+            <Row items={rowA} tweaks={tweaks} center={centerSmall} />
             {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
           </div>
         )}
