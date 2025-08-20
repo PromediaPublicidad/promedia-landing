@@ -31,7 +31,7 @@ const MEMBERS = [
   { id: 13, name: "Johan Guevara",      role: "Operador Gran Formato",    category: "Producción", img: "/team/team13.png" },
   { id: 10, name: "Raquel Castillero",  role: "Operadora de Papeleria",   category: "Producción", img: "/team/team10.png" },
   { id: 9,  name: "Cristel Brassfield", role: "Administradora",           category: "Producción", img: "/team/team9.png" },
-  { id: 16, name: "Yonner Silva",       role: "Instalador (Eso cree el)", category: "Producción", img: "/team/team16.png" },
+  { id: 16, name: "Yonner Silva",       role: "Instalador", category: "Producción", img: "/team/team16.png" },
   { id: 14, name: "Enrique Ortega",     role: "Instalador",               category: "Producción", img: "/team/team14.png" },
   { id: 15, name: "Xiomara Sevilla",    role: "Personal de Limpieza",     category: "Producción", img: "/team/team15.png" },
 ];
