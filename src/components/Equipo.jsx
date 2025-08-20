@@ -70,7 +70,7 @@ function CropFrame({ height, src, alt, shiftY = 0, zoom = 1, eager = false, chil
       <img
         src={src}
         alt={alt}
-        className="absolute inset-0 w-full h-full object-cover will-change-transform"
+        className="absolute inset-0 w-full h-full object-cover"
         style={{
           transform: `translateY(${shiftY}%) scale(${zoom})`,
           transformOrigin: "50% 50%"
@@ -133,18 +133,14 @@ function PersonCard({ m, tweaks }) {
   );
 }
 
-/* ================ Row con snap ================ */
+/* ================ Row con SNAP (sin mask-image: usamos fades) ================ */
 function Row({ items, tweaks }) {
   return (
-    <div
-      className="relative overflow-hidden rounded-3xl"
-      style={{
-        maskImage:
-          "linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%)",
-        WebkitMaskImage:
-          "linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%)",
-      }}
-    >
+    <div className="relative overflow-hidden rounded-3xl isolate">
+      {/* Fades en bordes (no usan mask → no rompen el compositing a 90% zoom) */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10" />
+
       <div className="w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory snap-always">
         <div className="flex gap-6 w-max px-6 py-4">
           {items.map((m) => (
@@ -156,7 +152,7 @@ function Row({ items, tweaks }) {
   );
 }
 
-/* ================ CEO Spotlight (más header: +3in en alto del frame) ================ */
+/* ================ CEO Spotlight (más header) ================ */
 function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
@@ -174,12 +170,11 @@ function CEOSpotlight({ person, tweaks }) {
       <div className="grid md:grid-cols-2 gap-0">
         <div className="relative">
           <CropFrame
-            /* altura original + 3 inches de headroom */
             height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 1in)`}
             src={person.img}
             alt={person.name}
-            shiftY={shiftY}  // 18
-            zoom={zoom}      // 1.00
+            shiftY={shiftY}
+            zoom={zoom}
             eager
           >
             <div className="absolute top-4 left-4">
@@ -243,7 +238,8 @@ function TeamTuner({ members, tweaks, setTweaks }) {
             onClick={() => setFilter(c)}
             className={[
               "px-3 py-1.5 rounded-full text-xs font-medium",
-              filter === c ? "bg-black text-white" : "bg-white text-neutral-700 border",
+              "bg-white text-neutral-700 border",
+              filter === c && "bg-black text-white"
             ].join(" ")}
           >
             {c}
@@ -336,7 +332,7 @@ function TeamTuner({ members, tweaks, setTweaks }) {
   );
 }
 
-/* ================ Componente principal ================ */
+/* ================ Componente principal (alineado al layout) ================ */
 export default function Equipo() {
   const [category, setCategory] = useState("Marketing");
   const [subfilter, setSubfilter] = useState("Todos");
@@ -357,68 +353,72 @@ export default function Equipo() {
     return [filtered.slice(0, mid), filtered.slice(mid)];
   }, [filtered]);
 
-  const tunerOn = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tuneTeam");
+  const tunerOn =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("tuneTeam");
 
   return (
-    <section id="equipo" className="py-24 px-6 md:px-24 bg-white select-none">
-      <h2 className="text-4xl font-bold text-center mb-10">
-        <TitleSweep color="#167c88" dir="rtl" duration={1.0} textFrom="#167c88" textTo="#ffffff">
-          Nuestro equipo
-        </TitleSweep>
-      </h2>
+    <section id="equipo" className="relative bg-white select-none overflow-x-clip">
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-24">
+        <h2 className="text-4xl font-bold text-center mb-10">
+          <TitleSweep color="#167c88" dir="rtl" duration={1.0} textFrom="#167c88" textTo="#ffffff">
+            Nuestro equipo
+          </TitleSweep>
+        </h2>
 
-      {/* CEO destacado */}
-      <CEOSpotlight person={CEO} tweaks={tweaks} />
+        {/* CEO destacado */}
+        <CEOSpotlight person={CEO} tweaks={tweaks} />
 
-      {/* Tabs por categoría (sin conteos) */}
-      <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-        {CATEGORIES.map((cat) => {
-          const active = category === cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => { setCategory(cat); setSubfilter("Todos"); }}
-              className={[
-                "px-4 py-2 rounded-full text-sm font-medium transition",
-                active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
-              ].join(" ")}
-            >
-              {cat}
-            </button>
-          );
-        })}
+        {/* Tabs por categoría (sin conteos) */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+          {CATEGORIES.map((cat) => {
+            const active = category === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => { setCategory(cat); setSubfilter("Todos"); }}
+                className={[
+                  "px-4 py-2 rounded-full text-sm font-medium transition",
+                  active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                ].join(" ")}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Subfiltros solo para Marketing */}
+        {category === "Marketing" && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+            {SUBFILTERS.Marketing.map((f) => (
+              <button
+                key={f}
+                onClick={() => setSubfilter(f)}
+                className={[
+                  "px-3 py-1.5 rounded-full text-xs font-medium transition",
+                  subfilter === f ? "bg-black text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                ].join(" ")}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Carrusel con SNAP (dos filas) */}
+        {filtered.length === 0 ? (
+          <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
+        ) : (
+          <div className="space-y-8">
+            <Row items={rowA} tweaks={tweaks} />
+            {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
+          </div>
+        )}
+
+        {/* Editor oculto (activar con ?tuneTeam=1) */}
+        {tunerOn && <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />}
       </div>
-
-      {/* Subfiltros solo para Marketing */}
-      {category === "Marketing" && (
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
-          {SUBFILTERS.Marketing.map((f) => (
-            <button
-              key={f}
-              onClick={() => setSubfilter(f)}
-              className={[
-                "px-3 py-1.5 rounded-full text-xs font-medium transition",
-                subfilter === f ? "bg-black text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
-              ].join(" ")}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Carrusel con SNAP (dos filas) */}
-      {filtered.length === 0 ? (
-        <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
-      ) : (
-        <div className="space-y-8">
-          <Row items={rowA} tweaks={tweaks} />
-          {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
-        </div>
-      )}
-
-      {/* Editor oculto (activar con ?tuneTeam=1) */}
-      {tunerOn && <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />}
     </section>
   );
 }

@@ -1,4 +1,6 @@
+// src/sections/CollageTrabajos.jsx
 import React from "react";
+import { motion } from "framer-motion";
 
 // Repite o mezcla a tu gusto. Se muestran completas (object-contain)
 const ROW1 = [
@@ -23,33 +25,46 @@ const ROW3 = [
   "/works/work15.jpg",
 ];
 
+/** Strip: marquee con Framer (loop infinito), sin mask-image */
 function Strip({ items, reverse = false, speed = 40, h = "h-44 md:h-56 xl:h-64" }) {
-  const track = [...items, ...items]; // duplicamos para loop perfecto
+  const track = [...items, ...items]; // duplicado para loop seamless
+  const anim = reverse ? ["-50%", "0%"] : ["0%", "-50%"]; // ida y vuelta lineal
+
   return (
-    <div
-      className={`collage-marquee group ${reverse ? "collage-marquee--reverse" : ""}`}
-      style={{ "--speed": `${speed}s` }}
-    >
-      <div className="collage-track">
+    <div className="relative overflow-hidden">
+      {/* Si quieres fade en bordes, descomenta:
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#0f1f25] to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#0f1f25] to-transparent z-10" />
+      */}
+      <motion.div
+        className="flex w-max"
+        animate={{ x: anim }}
+        transition={{ duration: speed, ease: "linear", repeat: Infinity }}
+      >
         {track.map((src, i) => (
-          <div key={i} className={`mx-3 md:mx-4 flex items-center justify-center rounded-xl bg-white/3 backdrop-blur-sm shadow-[0_6px_16px_rgba(0,0,0,0.15)] ${h} aspect-[16/10] overflow-hidden`}>
+          <div
+            key={i}
+            className={`group mx-3 md:mx-4 flex items-center justify-center rounded-xl bg-white/5 backdrop-blur-sm
+                        shadow-[0_6px_16px_rgba(0,0,0,0.15)] ${h} aspect-[16/10] overflow-hidden shrink-0`}
+          >
             <img
               src={src}
               alt={`Trabajo ${i + 1}`}
               className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
               loading="lazy"
+              decoding="async"
             />
           </div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
 
 export default function CollageTrabajos() {
   return (
-    <section id="trabajos" className="bg-[#0f1f25] py-20 px-6 md:px-12 text-[#167c88]">
-      <div className="max-w-7xl mx-auto">
+    <section id="trabajos" className="bg-[#0f1f25] overflow-x-clip">
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-20 text-[#167c88]">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
           Trabajos destacados
         </h2>

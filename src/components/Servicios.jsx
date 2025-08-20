@@ -3,24 +3,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
 /* =================== Catálogo exacto (sin 404) =================== */
-/* Si un slug aparece aquí, NO hacemos manifest ni probes: usamos solo estos nombres. */
 const KNOWN_PUBLIC_FILES = {
-  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"], // ← lo que tienes hoy
+  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"],
 };
 
-/* Orden de extensiones por categoría (solo para probes de otros slugs) */
 const DEFAULT_EXTS = ['webp','jpg','jpeg','png'];
 const EXT_ORDER = {
-  branding: ['jpg','jpeg','png'], // no se usa si está en KNOWN_PUBLIC_FILES, pero lo dejo por claridad
-  // gigantografia: ['webp','jpg','jpeg','png'],
-  // produccion-visual: ['webp','jpg','jpeg','png'],
+  branding: ['jpg','jpeg','png'],
 };
 
-/* =================== Descubrimiento con HEAD (solo si NO hay KNOWN_PUBLIC_FILES[slug]) =================== */
-/* Explora 1..maxN probando exts en orden. Corta en cuanto:
-   - ya encontramos al menos 1 y aparece 1 miss → asumimos numeración contigua y paramos.
-   - O bien alcanzamos el máximo.
-*/
+/* =================== Descubrimiento con HEAD (fallback) =================== */
 async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {}) {
   const found = [];
   let seenAny = false;
@@ -31,19 +23,19 @@ async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {})
       try {
         const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
         if (res.ok) { hit = url; break; }
-      } catch { /* ignore network hiccup */ }
+      } catch { /* ignore */ }
     }
     if (hit) {
       found.push(hit);
       seenAny = true;
     } else if (seenAny) {
-      break; // primera falta tras aciertos → paramos (evita 7,8,9…)
+      break;
     }
   }
   return found;
 }
 
-const discoveryCache = new Map(); // slug -> string[]
+const discoveryCache = new Map();
 
 function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
   const [urls, setUrls] = useState(() => discoveryCache.get(slug) || []);
@@ -51,7 +43,6 @@ function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // 1) ¿Tenemos lista exacta para este slug? úsala y no hagas requests extra.
       if (KNOWN_PUBLIC_FILES[slug]?.length) {
         const list = KNOWN_PUBLIC_FILES[slug].map(name => `/services/${slug}/${name}`);
         if (!cancelled) {
@@ -60,8 +51,6 @@ function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
         }
         return;
       }
-
-      // 2) Fallback: probe 1..maxN con el orden de exts definido para el slug
       const result = await probePublic(slug, { maxN, exts });
       if (!cancelled) {
         discoveryCache.set(slug, result);
@@ -127,13 +116,15 @@ export default function Servicios() {
   const urls = usePublicGallery(active, { maxN: 12, exts });
 
   return (
-    <section id="servicios" className="relative bg-[#0f1f25] py-24 px-6 md:px-10 xl:pl-[96px] 2xl:pl-[112px]">
-      <div aria-hidden className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]">
-        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-[#167c88]/10 blur-3xl"/>
-        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"/>
+    <section id="servicios" className="relative bg-[#0f1f25] overflow-x-clip">
+      {/* Glows decorativos (sin mask-image) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-[#167c88]/10 blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
       </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      {/* Contenedor centrado */}
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-24 relative z-10">
         <div className="text-center mb-12">
           <h3 className="text-4xl font-bold mb-4 text-[#167c88]">Nuestros Servicios</h3>
           <p className="text-lg text-white/90">Soluciones gráficas integrales que combinan creatividad, técnica y estrategia.</p>
@@ -189,7 +180,7 @@ export default function Servicios() {
               </a>
             </div>
 
-            {/* Collage: solo URLs reales (sin 404 jamás) */}
+            {/* Collage: solo URLs reales */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {urls.map((url, i) => (
                 <Tile key={url} url={url} alt={`${activo.title} ${i + 1}`} eager={i < 3} contain={false} />

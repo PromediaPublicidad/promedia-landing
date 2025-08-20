@@ -1,55 +1,48 @@
 @import "tailwindcss";
 
-/* ===== Resets & guardrails ===== */
-*,
-*::before,
-*::after { box-sizing: border-box; }
+/* =========== Resets sanos =========== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; }
 
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  max-width: 100%;
-}
+/* Suavidad de scroll + offset para header sticky */
+:root { --header-h: 72px; }
+html { scroll-behavior: smooth; scrollbar-gutter: stable both-edges; }
+[id] { scroll-margin-top: var(--header-h); }
 
-html, body {
-  margin: 0;          /* quita margen UA */
-  overflow-x: hidden; /* NO más scroll lateral global */
+/* Render nítido y SIN scroll lateral global */
+body {
+  overflow-x: clip; /* evita “desajuste a la derecha” */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Medios nunca rompen el ancho */
-img, video, canvas, svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
+/* Aísla portales (menú móvil) para z-index limpio */
+#root { isolation: isolate; }
 
-/* ===== Utilidades anti-overflow (por si alguna sección se pasa) ===== */
-/* Úsala en secciones con decoraciones absolute: <section class="relative overflow-x-clip"> */
-.overflow-x-clip { overflow-x: clip; }
+/* Medios nunca rompen el layout */
+img, video, canvas, svg { display: block; max-width: 100%; height: auto; }
 
-/* Para wrappers pantalla-completa que NO empujen por la barra de scroll */
-.vw-safe { width: min(100%, 100dvw); }
+/* =========== Utilidades pequeñas =========== */
+.overflow-x-clip { overflow-x: clip; }          /* por si alguna sección trae decoraciones absolute */
+.vw-safe        { width: min(100%, 100dvw); }   /* evita empujes por barra de scroll */
 
-/* ===== Tipografías ===== */
+/* Tipografía custom (ajusta ruta si cambia) */
 @font-face {
   font-family: 'Avenir Light';
-  src: url('/src/assets/fonts/Avenir-Light.ttf') format('truetype'); /* Ajusta la ruta si es otra */
+  src: url('/src/assets/fonts/Avenir-Light.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
-/* ===== Marquee infinito (sin fugas) ===== */
+/* =========== Marquees legacy (DESACTIVADOS) =========== */
+/* Ya migramos Alianzas/Collage a Framer Motion. 
+   Si algún componente antiguo sigue usando estas clases, déjalas sin mask para que no rompan el zoom 90%. */
 .marquee,
 .collage-marquee {
   position: relative;
   overflow: hidden;
-  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
-  /* Por si el navegador ignora mask, esto evita “fugas” */
-  contain: paint;
+  /* ❌ sin mask-image para evitar glitches al 90% de zoom */
 }
 
 .marquee__track,
@@ -60,20 +53,8 @@ img, video, canvas, svg {
   backface-visibility: hidden;
 }
 
-.marquee__track { animation: scroll var(--speed, 20s) linear infinite; }
-.marquee--reverse .marquee__track { animation-direction: reverse; }
-.marquee:hover .marquee__track { animation-play-state: paused; }
+/* No definimos @keyframes aquí; los nuevos usan Framer Motion. */
 
-.collage-track { animation: collage-scroll var(--speed, 40s) linear infinite; }
-.collage-marquee--reverse .collage-track { animation-direction: reverse; }
-.collage-marquee:hover .collage-track { animation-play-state: paused; }
-
-/* por si quedó padding derecho de algún estado anterior */
-body { padding-right: 0 !important; }
-
-/* util por si algún wrapper usa viewport width */
-.vw-safe { width: min(100%, 100dvw); }
-
-@keyframes scroll         { to { transform: translate3d(-50%, 0, 0); } }
-@keyframes collage-scroll { to { transform: translate3d(-50%, 0, 0); } }
-
+/* =========== Importante: sin hacks que rompan el body =========== */
+/* ❌ Nada de: body { padding-right: 0 !important; } 
+      Eso anulaba la compensación del drawer y podía crear “saltos” y desalinear todo. */
