@@ -117,28 +117,24 @@ export default function Header({ logoScrolled }) {
         ref={headerRef}
         className={[
           "fixed top-0 left-0 right-0 z-[70] w-full transition-colors duration-500",
-          // ⬇️ Altura actual - 5mm ≈ 19px (en móvil y desktop)
+          // Altura actual - 5mm (~19px)
           "min-h-[calc(68px-19px)] lg:min-h-[calc(80px-19px)]",
-          // Centrado vertical real de TODO el contenido
-          "flex items-center"
+          // Centrado vertical
+          "flex items-center",
+          // ✅ Fondo restaurado (con blur y sombra) cuando hay scroll
+          active ? "bg-white/90 backdrop-blur-md shadow-md" : "bg-white/80"
         ].join(" ")}
-        style={{ paddingTop: "max(0px, env(safe-area-inset-top))", ...(active ? {} : {}) }}
+        style={{ paddingTop: "max(0px, env(safe-area-inset-top))" }}
       >
-        <div className="max-w-7xl mx-auto h-full w-full flex items-center justify-between px-4 sm:px-6">
-          {/* Si tienes un logo, colócalo aquí (izquierda). 
-              El contenedor ya centra verticalmente */}
-          {/* <a href="#hero" className="flex items-center leading-none">
-            <img src="/logo.svg" alt="Promedia" className="h-7 md:h-8" />
-          </a> */}
-
-          {/* Desktop nav (derecha) */}
+        {/* Menú a la DERECHA */}
+        <div className="max-w-7xl mx-auto h-full w-full flex items-center justify-end px-4 sm:px-6">
           <nav className="hidden lg:flex h-full items-center space-x-10 text-sm font-medium uppercase tracking-wider text-[#167c88] leading-none">
             <a href="#servicios" className="hover:underline">Servicios</a>
             <a href="#conocenos" className="hover:underline">Conócenos</a>
             <a href="#contacto"  className="hover:underline">Contáctanos</a>
           </nav>
 
-          {/* Botón móvil */}
+          {/* Botón móvil (también alineado a la derecha) */}
           <button
             className="lg:hidden ml-auto inline-flex items-center justify-center w-10 h-10 rounded-md border border-[#167c88]/60 text-[#167c88] hover:bg-[#167c88]/10 transition leading-none"
             aria-label="Abrir menú"
