@@ -1,46 +1,66 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* ===== Hard stop al scroll horizontal ===== */
+html, body {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Anti-scroll lateral global */
-html, body { overflow-x: hidden; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
+/* ===== #root sin hacks de plantilla =====
+   - quitamos max-width y padding global
+   - quitamos text-align:center global
+   Deja que cada sección controle su ancho con Tailwind.
+*/
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: initial; /* o left; como prefieras */
+}
 
+/* ===== Medios nunca se salen ===== */
+img, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Para textos larguísimos que podrían empujar el layout */
+p, h1, h2, h3, h4, h5, h6, li {
+  overflow-wrap: anywhere;
+}
+
+/* Opcional: clase utilitaria si quieres un contenedor consistente sin Tailwind */
+.container {
+  max-width: 1200px;         /* ajústalo a tu gusto */
+  margin-inline: auto;
+  padding-inline: 24px;      /* gut */
+}
+
+/* Solo si usas el logo de la plantilla (safe) */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+.logo:hover { filter: drop-shadow(0 0 2em #646cffaa); }
+.logo.react:hover { filter: drop-shadow(0 0 2em #61dafbaa); }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
+@keyframes logo-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+  a:nth-of-type(2) .logo { animation: logo-spin infinite 20s linear; }
 }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
+/* Opcional: tarjetas/demo de la plantilla */
+.card { padding: 2em; }
+.read-the-docs { color: #888; }
