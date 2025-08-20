@@ -36,7 +36,7 @@ function MobileMenu({ open, onClose, linkClass }) {
               <span className="font-semibold tracking-wide uppercase">Menú</span>
               <button
                 aria-label="Cerrar menú"
-                className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-md hover:bg-white/10 transition leading-none"
                 onClick={onClose}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -65,7 +65,7 @@ export default function Header({ logoScrolled }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef(null);
-  const [spacerH, setSpacerH] = useState(68); // fallback más bajo
+  const [spacerH, setSpacerH] = useState(68); // fallback
 
   // Efecto de scroll (bg + blur + sombra cuando bajas)
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function Header({ logoScrolled }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Medir altura real del header → spacer exacto + actualizar --header-h
+  // Medir altura y actualizar --header-h (para anchors)
   useLayoutEffect(() => {
     const measure = () => {
       const h = headerRef.current?.offsetHeight || 68;
@@ -109,7 +109,7 @@ export default function Header({ logoScrolled }) {
   }, [open]);
 
   const active = typeof logoScrolled === "boolean" ? logoScrolled : scrolled;
-  const linkClass = "block px-5 py-4 text-lg font-semibold uppercase tracking-wider";
+  const linkClass = "block px-5 py-4 text-lg font-semibold uppercase tracking-wider leading-none";
 
   return (
     <>
@@ -117,23 +117,30 @@ export default function Header({ logoScrolled }) {
         ref={headerRef}
         className={[
           "fixed top-0 left-0 right-0 z-[70] w-full transition-colors duration-500",
-          // Altura más compacta, centrado vertical con flex
-          "min-h-[68px] lg:min-h-[80px] flex items-center",
-          active ? "bg-white/90 backdrop-blur-md shadow-md" : "bg-transparent"
+          // ⬇️ Altura actual - 5mm ≈ 19px (en móvil y desktop)
+          "min-h-[calc(68px-19px)] lg:min-h-[calc(80px-19px)]",
+          // Centrado vertical real de TODO el contenido
+          "flex items-center"
         ].join(" ")}
-        style={{ paddingTop: "max(0px, env(safe-area-inset-top))" }}
+        style={{ paddingTop: "max(0px, env(safe-area-inset-top))", ...(active ? {} : {}) }}
       >
-        <div className="max-w-7xl mx-auto h-full w-full flex items-center justify-end px-4 sm:px-6">
-          {/* Desktop */}
-          <nav className="hidden lg:flex items-center space-x-10 text-sm font-medium uppercase tracking-wider text-[#167c88]">
+        <div className="max-w-7xl mx-auto h-full w-full flex items-center justify-between px-4 sm:px-6">
+          {/* Si tienes un logo, colócalo aquí (izquierda). 
+              El contenedor ya centra verticalmente */}
+          {/* <a href="#hero" className="flex items-center leading-none">
+            <img src="/logo.svg" alt="Promedia" className="h-7 md:h-8" />
+          </a> */}
+
+          {/* Desktop nav (derecha) */}
+          <nav className="hidden lg:flex h-full items-center space-x-10 text-sm font-medium uppercase tracking-wider text-[#167c88] leading-none">
             <a href="#servicios" className="hover:underline">Servicios</a>
             <a href="#conocenos" className="hover:underline">Conócenos</a>
             <a href="#contacto"  className="hover:underline">Contáctanos</a>
           </nav>
 
-          {/* Mobile button */}
+          {/* Botón móvil */}
           <button
-            className="lg:hidden ml-2 inline-flex items-center justify-center w-10 h-10 rounded-md border border-[#167c88]/60 text-[#167c88] hover:bg-[#167c88]/10 transition"
+            className="lg:hidden ml-auto inline-flex items-center justify-center w-10 h-10 rounded-md border border-[#167c88]/60 text-[#167c88] hover:bg-[#167c88]/10 transition leading-none"
             aria-label="Abrir menú"
             aria-expanded={open}
             onClick={() => setOpen(true)}
@@ -145,10 +152,9 @@ export default function Header({ logoScrolled }) {
         </div>
       </header>
 
-      {/* Spacer exacto para que el contenido no quede debajo */}
+      {/* Spacer exacto (se recalcula solo) */}
       <div aria-hidden style={{ height: spacerH }} />
 
-      {/* Drawer portaleado */}
       <MobileMenu open={open} onClose={() => setOpen(false)} linkClass={linkClass} />
     </>
   );
