@@ -30,17 +30,13 @@ const logos = [
   "/alliances/Dip.png",
 ];
 
-/** Row: marquee sin mask-image, con Framer Motion (loop infinito) */
+/** Row: marquee sin mask-image (evita glitches a 90% de zoom) */
 function Row({ items, reverse = false, speed = 30 }) {
   const track = [...items, ...items]; // duplicado para loop seamless
   const anim = reverse ? ["-50%", "0%"] : ["0%", "-50%"];
 
   return (
     <div className="relative overflow-hidden">
-      {/* Si quieres fades en bordes, descomenta:
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#167c88] to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#167c88] to-transparent z-10" />
-      */}
       <motion.div
         className="flex w-max"
         animate={{ x: anim }}
@@ -51,9 +47,9 @@ function Row({ items, reverse = false, speed = 30 }) {
             <img
               src={src}
               alt={`Alianza ${i + 1}`}
-              className="h-12 md:h-14 xl:h-16 object-contain opacity-90
-                         drop-shadow-[0_0_6px_rgba(0,0,0,0.25)]
-                         transition duration-300 hover:opacity-100"
+              /* Alto fijo 2 cm; ancho proporcional */
+              style={{ height: "2cm", width: "auto" }}
+              className="block object-contain opacity-90 drop-shadow-[0_0_6px_rgba(0,0,0,0.25)] transition duration-300 hover:opacity-100"
               loading="lazy"
               decoding="async"
             />
