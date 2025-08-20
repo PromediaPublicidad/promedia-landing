@@ -65,7 +65,7 @@ export default function Header({ logoScrolled }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef(null);
-  const [spacerH, setSpacerH] = useState(72); // fallback
+  const [spacerH, setSpacerH] = useState(80); // fallback inicial
 
   // Efecto de scroll (bg + blur + sombra cuando bajas)
   useEffect(() => {
@@ -75,9 +75,14 @@ export default function Header({ logoScrolled }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Medir altura real del header → spacer exacto
+  // Medir altura real del header → spacer exacto + actualizar --header-h para anclas
   useLayoutEffect(() => {
-    const measure = () => setSpacerH(headerRef.current?.offsetHeight || 72);
+    const measure = () => {
+      const h = headerRef.current?.offsetHeight || 80;
+      setSpacerH(h);
+      // sincroniza con CSS var usada por scroll-margin-top
+      document.documentElement.style.setProperty("--header-h", `${h}px`);
+    };
     measure();
     const ro = new ResizeObserver(measure);
     if (headerRef.current) ro.observe(headerRef.current);
@@ -115,16 +120,17 @@ export default function Header({ logoScrolled }) {
         ref={headerRef}
         className={[
           "fixed top-0 left-0 right-0 z-[70] w-full transition-colors duration-500",
-          "py-4", // altura estable
-          active
-            ? "bg-white/90 backdrop-blur-md shadow-md"
-            : "bg-transparent"
+          // Altura consistente y mayor: centrado vertical perfecto
+          "min-h-[80px] lg:min-h-[96px]",
+          // Eliminamos padding vertical y usamos flex para centrar todo
+          "flex items-center",
+          active ? "bg-white/90 backdrop-blur-md shadow-md" : "bg-transparent"
         ].join(" ")}
         style={{ paddingTop: "max(0px, env(safe-area-inset-top))" }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-end px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto h-full w-full flex items-center justify-end px-4 sm:px-6">
           {/* Desktop */}
-          <nav className="hidden lg:flex space-x-10 text-sm font-medium uppercase tracking-wider text-[#167c88]">
+          <nav className="hidden lg:flex items-center space-x-10 text-sm font-medium uppercase tracking-wider text-[#167c88]">
             <a href="#servicios" className="hover:underline">Servicios</a>
             <a href="#conocenos" className="hover:underline">Conócenos</a>
             <a href="#contacto"  className="hover:underline">Contáctanos</a>
