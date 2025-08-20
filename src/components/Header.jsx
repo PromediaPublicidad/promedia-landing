@@ -65,7 +65,7 @@ export default function Header({ logoScrolled }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef(null);
-  const [spacerH, setSpacerH] = useState(80); // fallback inicial
+  const [spacerH, setSpacerH] = useState(68); // fallback más bajo
 
   // Efecto de scroll (bg + blur + sombra cuando bajas)
   useEffect(() => {
@@ -75,12 +75,11 @@ export default function Header({ logoScrolled }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Medir altura real del header → spacer exacto + actualizar --header-h para anclas
+  // Medir altura real del header → spacer exacto + actualizar --header-h
   useLayoutEffect(() => {
     const measure = () => {
-      const h = headerRef.current?.offsetHeight || 80;
+      const h = headerRef.current?.offsetHeight || 68;
       setSpacerH(h);
-      // sincroniza con CSS var usada por scroll-margin-top
       document.documentElement.style.setProperty("--header-h", `${h}px`);
     };
     measure();
@@ -93,7 +92,7 @@ export default function Header({ logoScrolled }) {
     };
   }, []);
 
-  // Lock scroll + compensar scrollbar para evitar “corrimiento” a la derecha
+  // Lock scroll + compensar scrollbar
   useEffect(() => {
     const sbw = window.innerWidth - document.documentElement.clientWidth;
     if (open) {
@@ -109,9 +108,7 @@ export default function Header({ logoScrolled }) {
     };
   }, [open]);
 
-  // Si te pasan logoScrolled, lo respeto; si no, uso mi propio estado
   const active = typeof logoScrolled === "boolean" ? logoScrolled : scrolled;
-
   const linkClass = "block px-5 py-4 text-lg font-semibold uppercase tracking-wider";
 
   return (
@@ -120,10 +117,8 @@ export default function Header({ logoScrolled }) {
         ref={headerRef}
         className={[
           "fixed top-0 left-0 right-0 z-[70] w-full transition-colors duration-500",
-          // Altura consistente y mayor: centrado vertical perfecto
-          "min-h-[80px] lg:min-h-[96px]",
-          // Eliminamos padding vertical y usamos flex para centrar todo
-          "flex items-center",
+          // Altura más compacta, centrado vertical con flex
+          "min-h-[68px] lg:min-h-[80px] flex items-center",
           active ? "bg-white/90 backdrop-blur-md shadow-md" : "bg-transparent"
         ].join(" ")}
         style={{ paddingTop: "max(0px, env(safe-area-inset-top))" }}
