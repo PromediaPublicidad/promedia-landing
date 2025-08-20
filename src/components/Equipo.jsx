@@ -42,25 +42,25 @@ const SUBFILTERS = {
 };
 
 /* ================ Tweaks (shiftY/zoom) ================ */
-/* shiftY en %: + baja la imagen, - la sube. zoom <1 aleja. */
+/* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
 const INITIAL_TWEAKS = {
-  1:  { shiftY: -10, zoom: 1.00 }, // CEO ajustado
-  2:  { shiftY: -4,  zoom: 1.00 },
-  3:  { shiftY:  1,  zoom: 1.00 },
-  4:  { shiftY:  4,  zoom: 1.00 },
-  5:  { shiftY:  3,  zoom: 0.95 },
-  6:  { shiftY:  4,  zoom: 0.96 },
-  7:  { shiftY:  4,  zoom: 0.96 },
-  8:  { shiftY:  2,  zoom: 1.00 },
-  9:  { shiftY:  5,  zoom: 0.95 },
-  10: { shiftY:  3,  zoom: 1.00 },
-  11: { shiftY:  4,  zoom: 1.00 },
-  12: { shiftY:  2,  zoom: 1.00 },
-  13: { shiftY:  6,  zoom: 1.00 },
-  14: { shiftY:  2,  zoom: 1.00 },
-  15: { shiftY:  1,  zoom: 1.00 },
-  16: { shiftY:  5,  zoom: 1.00 },
-  17: { shiftY:  2,  zoom: 1.00 },
+  1:  { shiftY: 18, zoom: 1.00 }, // CEO (ajustamos -10% más abajo en el spotlight)
+  2:  { shiftY: -4, zoom: 1.00 },
+  3:  { shiftY:  1, zoom: 1.00 },
+  4:  { shiftY:  4, zoom: 1.00 },
+  5:  { shiftY:  3, zoom: 0.95 },
+  6:  { shiftY:  4, zoom: 0.96 },
+  7:  { shiftY:  4, zoom: 0.96 },
+  8:  { shiftY:  2, zoom: 1.00 },
+  9:  { shiftY:  5, zoom: 0.95 },
+  10: { shiftY:  3, zoom: 1.00 },
+  11: { shiftY:  4, zoom: 1.00 },
+  12: { shiftY:  2, zoom: 1.00 },
+  13: { shiftY:  6, zoom: 1.00 },
+  14: { shiftY:  2, zoom: 1.00 },
+  15: { shiftY:  1, zoom: 1.00 },
+  16: { shiftY:  5, zoom: 1.00 },
+  17: { shiftY:  2, zoom: 1.00 },
 };
 
 /* ================ Helper: frame fijo + imagen absoluta ================ */
@@ -90,7 +90,7 @@ function PersonCard({ m, tweaks }) {
     <motion.article
       key={m.id}
       aria-label={`${m.name} – ${m.role}`}
-      className="snap-start min-w-[220px] md:min-w-[240px] lg:min-w-[260px] relative group rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5 bg-white"
+      className="min-w-[220px] md:min-w-[240px] lg:min-w-[260px] relative group rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5 bg-white"
       initial={{ opacity: 0, scale: 0.94, y: 8 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -128,29 +128,32 @@ function PersonCard({ m, tweaks }) {
   );
 }
 
-/* ================ Row con snap ================ */
-function Row({ items, tweaks, center = false }) {
-  const innerClass = center
-    ? "flex gap-6 px-6 py-4 justify-center min-w-full"
-    : "flex gap-6 w-max px-6 py-4";
-
+/* ================ Grid centrado (Marketing, Asesoras) ================ */
+function GridCentered({ items, tweaks }) {
   return (
-    <div
-      className="relative overflow-hidden rounded-3xl"
-      style={{
-        maskImage:
-          "linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%)",
-        WebkitMaskImage:
-          "linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%)",
-      }}
-    >
-      <div className="w-full overflow-x-auto scrollbar-hide snap-x snap-mandatory snap-always">
-        <div className={innerClass}>
-          {items.map((m) => (
-            <PersonCard key={m.id} m={m} tweaks={tweaks} />
-          ))}
-        </div>
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center px-6">
+      {items.map((m) => (
+        <PersonCard key={m.id} m={m} tweaks={tweaks} />
+      ))}
+    </div>
+  );
+}
+
+/* ================ Loop infinito (Producción) ================ */
+function LoopRow({ items, tweaks, reverse = false, speed = 35 }) {
+  const track = [...items, ...items]; // para loop perfecto
+  const anim = reverse ? ["-50%", "0%"] : ["0%", "-50%"];
+  return (
+    <div className="relative overflow-hidden rounded-3xl">
+      <motion.div
+        className="flex w-max gap-6 px-6 py-4"
+        animate={{ x: anim }}
+        transition={{ duration: speed, ease: "linear", repeat: Infinity }}
+      >
+        {track.map((m, i) => (
+          <PersonCard key={`${m.id}-${i}`} m={m} tweaks={tweaks} />
+        ))}
+      </motion.div>
     </div>
   );
 }
@@ -161,6 +164,9 @@ function CEOSpotlight({ person, tweaks }) {
   const t = tweaks[person.id] || {};
   const zoom = typeof t.zoom === "number" ? t.zoom : 1.0;
   const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
+
+  // ajuste extra de -10% SOLO a la imagen del CEO (lo que te quedó perfecto)
+  const shiftYAdj = shiftY - 10;
 
   return (
     <motion.div
@@ -176,7 +182,7 @@ function CEOSpotlight({ person, tweaks }) {
             height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 1in)`}
             src={person.img}
             alt={person.name}
-            shiftY={shiftY}
+            shiftY={shiftYAdj}
             zoom={zoom}
             eager
           >
@@ -203,6 +209,90 @@ function CEOSpotlight({ person, tweaks }) {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/* ================ Componente principal ================ */
+export default function Equipo() {
+  const [category, setCategory] = useState("Marketing");
+  const [subfilter, setSubfilter] = useState("Todos");
+  const [tweaks, setTweaks] = useState(INITIAL_TWEAKS);
+
+  const CEO = useMemo(() => MEMBERS.find((m) => m.category === "CEO"), []);
+  const filtered = useMemo(() => {
+    const base = MEMBERS
+      .filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
+      .filter((m) => m.category === category);
+    if (category !== "Marketing" || subfilter === "Todos") return base;
+    return base.filter((m) => m.role === subfilter);
+  }, [category, subfilter]);
+
+  const tunerOn =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("tuneTeam");
+
+  return (
+    <section id="equipo" className="relative bg-white overflow-x-clip select-none">
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-24">
+        <h2 className="text-4xl font-bold text-center mb-10">
+          <TitleSweep color="#167c88" dir="rtl" duration={1.0} textFrom="#167c88" textTo="#ffffff">
+            Nuestro equipo
+          </TitleSweep>
+        </h2>
+
+        {/* CEO destacado */}
+        <CEOSpotlight person={CEO} tweaks={tweaks} />
+
+        {/* Tabs por categoría (sin conteos) */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+          {CATEGORIES.map((cat) => {
+            const active = category === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => { setCategory(cat); setSubfilter("Todos"); }}
+                className={[
+                  "px-4 py-2 rounded-full text-sm font-medium transition",
+                  active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                ].join(" ")}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Subfiltros solo para Marketing */}
+        {category === "Marketing" && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+            {SUBFILTERS.Marketing.map((f) => (
+              <button
+                key={f}
+                onClick={() => setSubfilter(f)}
+                className={[
+                  "px-3 py-1.5 rounded-full text-xs font-medium transition",
+                  subfilter === f ? "bg-black text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
+                ].join(" ")}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Vista por categoría */}
+        {filtered.length === 0 ? (
+          <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
+        ) : category === "Producción" ? (
+          <LoopRow items={filtered} tweaks={tweaks} speed={35} />
+        ) : (
+          <GridCentered items={filtered} tweaks={tweaks} />
+        )}
+
+        {/* Editor oculto (activar con ?tuneTeam=1) */}
+        {tunerOn && <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />}
+      </div>
+    </section>
   );
 }
 
@@ -327,98 +417,5 @@ function TeamTuner({ members, tweaks, setTweaks }) {
         <pre className="mt-2 text-[11px] bg-white p-3 rounded-md overflow-auto">{toJSON()}</pre>
       </details>
     </div>
-  );
-}
-
-/* ================ Componente principal ================ */
-export default function Equipo() {
-  const [category, setCategory] = useState("Marketing");
-  const [subfilter, setSubfilter] = useState("Todos");
-  const [tweaks, setTweaks] = useState(INITIAL_TWEAKS);
-
-  const CEO = useMemo(() => MEMBERS.find((m) => m.category === "CEO"), []);
-
-  const filtered = useMemo(() => {
-    const base = MEMBERS
-      .filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
-      .filter((m) => m.category === category);
-    if (category !== "Marketing" || subfilter === "Todos") return base;
-    return base.filter((m) => m.role === subfilter);
-  }, [category, subfilter]);
-
-  // ⬇️ Si hay 3 o menos personas (p.ej., Asesoras=2), mostramos TODO en una sola fila centrada.
-  const [rowA, rowB, centerSmall] = useMemo(() => {
-    if (filtered.length <= 3) return [filtered, [], true];
-    const mid = Math.ceil(filtered.length / 2);
-    return [filtered.slice(0, mid), filtered.slice(mid), false];
-  }, [filtered]);
-
-  const tunerOn =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("tuneTeam");
-
-  return (
-    <section id="equipo" className="relative bg-white overflow-x-clip select-none">
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-24">
-        <h2 className="text-4xl font-bold text-center mb-10">
-          <TitleSweep color="#167c88" dir="rtl" duration={1.0} textFrom="#167c88" textTo="#ffffff">
-            Nuestro equipo
-          </TitleSweep>
-        </h2>
-
-        {/* CEO destacado */}
-        <CEOSpotlight person={CEO} tweaks={tweaks} />
-
-        {/* Tabs por categoría (sin conteos) */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-          {CATEGORIES.map((cat) => {
-            const active = category === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => { setCategory(cat); setSubfilter("Todos"); }}
-                className={[
-                  "px-4 py-2 rounded-full text-sm font-medium transition",
-                  active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
-                ].join(" ")}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Subfiltros solo para Marketing */}
-        {category === "Marketing" && (
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
-            {SUBFILTERS.Marketing.map((f) => (
-              <button
-                key={f}
-                onClick={() => setSubfilter(f)}
-                className={[
-                  "px-3 py-1.5 rounded-full text-xs font-medium transition",
-                  subfilter === f ? "bg-black text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
-                ].join(" ")}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Carrusel con SNAP */}
-        {filtered.length === 0 ? (
-          <div className="text-center text-neutral-500 py-16">No hay personas en este filtro.</div>
-        ) : (
-          <div className="space-y-8">
-            <Row items={rowA} tweaks={tweaks} center={centerSmall} />
-            {rowB.length > 0 && <Row items={rowB} tweaks={tweaks} />}
-          </div>
-        )}
-
-        {/* Editor oculto (activar con ?tuneTeam=1) */}
-        {tunerOn && <TeamTuner members={MEMBERS} tweaks={tweaks} setTweaks={setTweaks} />}
-      </div>
-    </section>
   );
 }
