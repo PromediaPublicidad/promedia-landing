@@ -163,10 +163,9 @@ function CEOSpotlight({ person, tweaks }) {
   if (!person) return null;
   const t = tweaks[person.id] || {};
   const zoom = typeof t.zoom === "number" ? t.zoom : 1.0;
-  const shiftY = typeof t.shiftY === "number" ? t.shiftY : 0;
 
-  // ajuste extra de -10% SOLO a la imagen del CEO (lo que te quedó perfecto)
-  const shiftYAdj = shiftY - 10;
+  // Forzamos la imagen 10% hacia ARRIBA en todos los breakpoints
+  const shiftYFinal = -10;
 
   return (
     <motion.div
@@ -182,7 +181,7 @@ function CEOSpotlight({ person, tweaks }) {
             height={`calc(clamp(${CARD_H_MOBILE + 80}px, 36vw, ${CARD_H_DESKTOP + 120}px) + 1in)`}
             src={person.img}
             alt={person.name}
-            shiftY={shiftYAdj}
+            shiftY={shiftYFinal}  // ← solo la IMAGEN sube
             zoom={zoom}
             eager
           >
