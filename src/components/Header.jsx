@@ -1,5 +1,5 @@
 // Header.jsx
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -46,9 +46,9 @@ function MobileMenu({ open, onClose, linkClass }) {
 
             <div className="bg-white flex-1 overflow-y-auto">
               <nav className="divide-y divide-[#167c88]/15">
-                <a href="#servicios"  className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Servicios</a>
-                <a href="#conocenos"  className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Conócenos</a>
-                <a href="#contacto"   className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Contáctanos</a>
+                <a href="#servicios" className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Servicios</a>
+                <a href="#conocenos" className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Conócenos</a>
+                <a href="#contacto"  className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Contáctanos</a>
               </nav>
             </div>
           </motion.aside>
@@ -61,14 +61,10 @@ function MobileMenu({ open, onClose, linkClass }) {
 
 export default function Header({ logoScrolled }) {
   const [open, setOpen] = useState(false);
-  const headerRef = useRef(null);
 
-  // Evitar salto a la derecha al abrir menú (compensar scrollbar)
+  // Lock scroll + compensar scrollbar para que no se “corra” a la derecha
   useEffect(() => {
-    const sbw = typeof window !== "undefined"
-      ? window.innerWidth - document.documentElement.clientWidth
-      : 0;
-
+    const sbw = window.innerWidth - document.documentElement.clientWidth;
     if (open) {
       document.body.style.overflow = "hidden";
       document.body.style.paddingRight = sbw ? `${sbw}px` : "";
@@ -82,27 +78,15 @@ export default function Header({ logoScrolled }) {
     };
   }, [open]);
 
-  // Altura del header → variable CSS para el spacer
-  useLayoutEffect(() => {
-    const setVar = () => {
-      const h = headerRef.current?.offsetHeight || 0;
-      document.documentElement.style.setProperty("--hdr-h", `${h}px`);
-    };
-    setVar();
-    window.addEventListener("resize", setVar);
-    return () => window.removeEventListener("resize", setVar);
-  }, [logoScrolled]); // recalc al cambiar estilo
-
   const linkClass = "block px-5 py-4 text-lg font-semibold uppercase tracking-wider";
 
   return (
     <>
+      {/* ⬇️ sticky: siempre visible, sin brincos */}
       <header
-        ref={headerRef}
         className={[
-          "fixed top-0 left-0 right-0 z-[60] transition-colors duration-500",
-          // 👇 Mantén la misma altura SIEMPRE (py-4) para que no empuje el layout
-          "py-4",
+          "sticky top-0 z-[60] transition-colors duration-500",
+          "py-4", // altura estable
           logoScrolled
             ? "bg-white/90 backdrop-blur-md shadow-md"
             : "bg-transparent"
@@ -130,10 +114,7 @@ export default function Header({ logoScrolled }) {
         </div>
       </header>
 
-      {/* Spacer para que el contenido no se esconda bajo el header */}
-      <div aria-hidden className="h-[var(--hdr-h)]" />
-
-      {/* Drawer portaleado */}
+      {/* ❌ ya no necesitas spacer */}
       <MobileMenu open={open} onClose={() => setOpen(false)} linkClass={linkClass} />
     </>
   );
