@@ -3,7 +3,7 @@ import { MdEmail, MdPhone, MdLocationOn } from "react-icons/md";
 import TitleSweep from "../components/TitleSweep";
 
 export default function Footer() {
-  const EMAIL = "promarketing@promediapublicidad.com";
+  const EMAIL = "info@promediapublicidad.com";
   const PHONE = "+507 6894-0670";
   const PHONE_LINK = "tel:+50768940670";
   const ADDRESS = "Vía Brasil, Panamá, Provincia de Panamá";
