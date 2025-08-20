@@ -68,5 +68,12 @@ img, video, canvas, svg {
 .collage-marquee--reverse .collage-track { animation-direction: reverse; }
 .collage-marquee:hover .collage-track { animation-play-state: paused; }
 
+/* por si quedó padding derecho de algún estado anterior */
+body { padding-right: 0 !important; }
+
+/* util por si algún wrapper usa viewport width */
+.vw-safe { width: min(100%, 100dvw); }
+
 @keyframes scroll         { to { transform: translate3d(-50%, 0, 0); } }
 @keyframes collage-scroll { to { transform: translate3d(-50%, 0, 0); } }
+
