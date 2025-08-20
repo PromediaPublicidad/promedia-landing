@@ -25,8 +25,8 @@ export default function Hero() {
 
       {/* Contenido centrado y limitado */}
       <div className="relative z-30 mx-auto max-w-7xl w-full px-6 sm:px-8 lg:px-10 min-h-[inherit] flex flex-col items-center justify-center text-center">
-        {/* 🔽 Baja el bloque ~3.5 cm */}
-        <div style={{ marginTop: '3.5cm' }}>
+        {/* 🔽 Offset controlado por CSS var (3.5cm base; +1.5cm en móvil landscape) */}
+        <div className="hero-offset">
           {/* Wrapper del título con clip para la animación */}
           <div className="relative inline-block overflow-hidden rounded-md">
             {/* Rectángulo animado detrás del texto */}
@@ -36,6 +36,7 @@ export default function Hero() {
               animate={{ x: '0%' }}
               transition={{ duration: 1.2, ease: 'easeOut' }}
             />
+
             {/* Texto principal */}
             <motion.h1
               className="relative z-10 px-4 py-2 text-4xl md:text-6xl font-bold tracking-tight text-white"

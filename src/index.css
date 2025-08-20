@@ -69,3 +69,18 @@ img, video, canvas, svg {
 
 /* Nada de outlines globales de debug.
    (Antes había: body * { outline: 1px dashed rgba(22,124,136,.15); }) */
+   /* Offset del bloque de texto del Hero:
+   - Base: 3.5cm
+   - Móvil en horizontal (altura pequeña): +1.5cm extra */
+.hero-offset {
+  --hero-offset: 3.5cm;
+  margin-top: var(--hero-offset);
+}
+
+/* Aplica en móvil/tablet en horizontal con poca altura */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hero-offset {
+    --hero-offset: 5cm; /* 3.5cm + 1.5cm */
+  }
+}
+
