@@ -6,24 +6,26 @@ export default function Hero() {
       id="hero"
       className="relative min-h-screen bg-black text-white overflow-x-clip"
     >
-      {/* Video de fondo */}
-      <video
-        className="absolute inset-0 w-full h-full object-cover opacity-70 object-[50%_35%] md:object-center"
-        autoPlay
-        loop
-        muted
-        playsInline
-      >
-        <source src="/hero-video.mp4" type="video/mp4" />
-        Tu navegador no soporta video HTML5.
-      </video>
+      {/* Wrapper del video con escala SOLO en móvil */}
+      <div className="absolute inset-0 origin-center transform scale-[1.06] sm:scale-100 will-change-transform">
+        <video
+          className="w-full h-full object-cover opacity-70 object-[50%_35%] md:object-center"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+          Tu navegador no soporta video HTML5.
+        </video>
+      </div>
 
       {/* Capa oscura */}
       <div className="absolute inset-0 bg-black/50 z-10" />
 
       {/* Contenido centrado y limitado */}
       <div className="relative z-30 mx-auto max-w-7xl w-full px-6 sm:px-8 lg:px-10 min-h-[inherit] flex flex-col items-center justify-center text-center">
-        {/* ➜ Wrapper que baja el bloque ~3.5cm */}
+        {/* 🔽 Baja el bloque ~3.5 cm */}
         <div style={{ marginTop: '3.5cm' }}>
           {/* Wrapper del título con clip para la animación */}
           <div className="relative inline-block overflow-hidden rounded-md">
@@ -34,7 +36,6 @@ export default function Hero() {
               animate={{ x: '0%' }}
               transition={{ duration: 1.2, ease: 'easeOut' }}
             />
-
             {/* Texto principal */}
             <motion.h1
               className="relative z-10 px-4 py-2 text-4xl md:text-6xl font-bold tracking-tight text-white"
