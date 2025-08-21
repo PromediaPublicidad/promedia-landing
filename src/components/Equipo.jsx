@@ -18,11 +18,14 @@ const MEMBERS = [
   { id: 3,  name: "Claudia Collantes",  role: "Ventas y Logística",       category: "Asesoras",   img: "/team/team3.png" },
 
   // Marketing
-  { id: 6,  name: "Giuli Santa",        role: "Project Manager",          category: "Marketing",  img: "/team/team6.png" },
+  { id: 6,  name: "Giulianna Santa",        role: "Project Manager",          category: "Marketing",  img: "/team/team6.png" },
   { id: 7,  name: "Dasly Peralta",      role: "Community Manager",        category: "Marketing",  img: "/team/team7.png" },
   { id: 8,  name: "Dionmer Esaa",       role: "Productor Audiovisual",    category: "Marketing",  img: "/team/team8.png" },
   { id: 4,  name: "Thais Soto",         role: "Diseñadora Grafica",       category: "Marketing",  img: "/team/team4.png" },
   { id: 5,  name: "Yerimar Ryfkogel",   role: "Diseñadora Grafica",       category: "Marketing",  img: "/team/team5.png" },
+
+  // Gerencia (nuevo)
+  { id: 9,  name: "Cristel Brassfield", role: "Administradora",           category: "Gerencia",   img: "/team/team9.png" },
 
   // Producción
   { id: 17, name: "Oswaldo Figueroa",   role: "Jefe de Producción",       category: "Producción", img: "/team/team17.png" },
@@ -30,16 +33,12 @@ const MEMBERS = [
   { id: 12, name: "Javier Hawkins",     role: "Operador Gran Formato",    category: "Producción", img: "/team/team12.png" },
   { id: 13, name: "Johan Guevara",      role: "Operador Gran Formato",    category: "Producción", img: "/team/team13.png" },
   { id: 10, name: "Raquel Castillero",  role: "Operadora de Papeleria",   category: "Producción", img: "/team/team10.png" },
-  { id: 9,  name: "Cristel Brassfield", role: "Administradora",           category: "Producción", img: "/team/team9.png" },
-  { id: 16, name: "Yonner Silva",       role: "Instalador", category: "Producción", img: "/team/team16.png" },
+  { id: 16, name: "Yonner Silva",       role: "Instalador",               category: "Producción", img: "/team/team16.png" },
   { id: 14, name: "Enrique Ortega",     role: "Instalador",               category: "Producción", img: "/team/team14.png" },
   { id: 15, name: "Xiomara Sevilla",    role: "Personal de Limpieza",     category: "Producción", img: "/team/team15.png" },
 ];
 
-const CATEGORIES = ["Marketing", "Asesoras", "Producción"];
-const SUBFILTERS = {
-  Marketing: ["Todos", "Project Manager", "Community Manager", "Productor Audiovisual", "Diseñadora Grafica"],
-};
+const CATEGORIES = ["Gerencia", "Asesoras", "Marketing", "Producción"];
 
 /* ================ Tweaks (shiftY/zoom) ================ */
 /* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
@@ -53,14 +52,14 @@ const INITIAL_TWEAKS = {
   7:  { shiftY:  4, zoom: 0.96 },
   8:  { shiftY:  2, zoom: 1.00 },
   9:  { shiftY:  5, zoom: 0.95 },
-  10: { shiftY:  3, zoom: 1.00 },
-  11: { shiftY:  4, zoom: 1.00 },
-  12: { shiftY:  2, zoom: 1.00 },
-  13: { shiftY:  6, zoom: 1.00 },
-  14: { shiftY:  2, zoom: 1.00 },
-  15: { shiftY:  1, zoom: 1.00 },
-  16: { shiftY:  5, zoom: 1.00 },
-  17: { shiftY:  2, zoom: 1.00 },
+  10:{ shiftY:  3, zoom: 1.00 },
+  11:{ shiftY:  4, zoom: 1.00 },
+  12:{ shiftY:  2, zoom: 1.00 },
+  13:{ shiftY:  6, zoom: 1.00 },
+  14:{ shiftY:  2, zoom: 1.00 },
+  15:{ shiftY:  1, zoom: 1.00 },
+  16:{ shiftY:  5, zoom: 1.00 },
+  17:{ shiftY:  2, zoom: 1.00 },
 };
 
 /* ================ Helper: frame fijo + imagen absoluta ================ */
@@ -128,8 +127,16 @@ function PersonCard({ m, tweaks }) {
   );
 }
 
-/* ================ Grid centrado (Marketing, Asesoras) ================ */
+/* ================ Grid centrado (Marketing, Asesoras, Gerencia) ================ */
 function GridCentered({ items, tweaks }) {
+  if (items.length === 1) {
+    // Caso Gerencia: una sola tarjeta bien centrada
+    return (
+      <div className="flex justify-center px-6">
+        <PersonCard m={items[0]} tweaks={tweaks} />
+      </div>
+    );
+  }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center px-6">
       {items.map((m) => (
@@ -214,17 +221,16 @@ function CEOSpotlight({ person, tweaks }) {
 /* ================ Componente principal ================ */
 export default function Equipo() {
   const [category, setCategory] = useState("Marketing");
-  const [subfilter, setSubfilter] = useState("Todos");
   const [tweaks, setTweaks] = useState(INITIAL_TWEAKS);
 
   const CEO = useMemo(() => MEMBERS.find((m) => m.category === "CEO"), []);
+
+  // Mostrar SIEMPRE todos los de la categoría (sin subfiltros en Marketing)
   const filtered = useMemo(() => {
-    const base = MEMBERS
+    return MEMBERS
       .filter((m) => m.category !== "CEO" && CATEGORIES.includes(m.category))
       .filter((m) => m.category === category);
-    if (category !== "Marketing" || subfilter === "Todos") return base;
-    return base.filter((m) => m.role === subfilter);
-  }, [category, subfilter]);
+  }, [category]);
 
   const tunerOn =
     typeof window !== "undefined" &&
@@ -242,14 +248,14 @@ export default function Equipo() {
         {/* CEO destacado */}
         <CEOSpotlight person={CEO} tweaks={tweaks} />
 
-        {/* Tabs por categoría (sin conteos) */}
+        {/* Tabs por categoría (sin conteos ni subfiltros) */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
           {CATEGORIES.map((cat) => {
             const active = category === cat;
             return (
               <button
                 key={cat}
-                onClick={() => { setCategory(cat); setSubfilter("Todos"); }}
+                onClick={() => { setCategory(cat); }}
                 className={[
                   "px-4 py-2 rounded-full text-sm font-medium transition",
                   active ? "bg-[#167c88] text-white shadow" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
@@ -260,24 +266,6 @@ export default function Equipo() {
             );
           })}
         </div>
-
-        {/* Subfiltros solo para Marketing */}
-        {category === "Marketing" && (
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
-            {SUBFILTERS.Marketing.map((f) => (
-              <button
-                key={f}
-                onClick={() => setSubfilter(f)}
-                className={[
-                  "px-3 py-1.5 rounded-full text-xs font-medium transition",
-                  subfilter === f ? "bg-black text-white" : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
-                ].join(" ")}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Vista por categoría */}
         {filtered.length === 0 ? (
