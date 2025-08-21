@@ -84,3 +84,19 @@ img, video, canvas, svg {
   }
 }
 
+/* Anti-abrir/guardar imágenes: fricción razonable */
+img, picture img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+
+  /* Solo esta es válida en navegadores WebKit (Safari/Chrome) */
+  -webkit-user-drag: none;
+
+  /* Desactiva interacciones directas sobre la imagen */
+  pointer-events: none;
+}
+
+/* Si alguna imagen SÍ debe ser clicable/hover, usa esta clase */
+img.img-interactive { pointer-events: auto; }
