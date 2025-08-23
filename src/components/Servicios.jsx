@@ -61,8 +61,8 @@ const GALLERY_TWEAKS = {
     "4.jpeg": { shiftY: -12 }, "5.jpeg": { shiftY: -19 }, "6.jpg": { shiftY: -3 },
   },
   personalizados: {
-    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
-    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+    "1.jpeg": { shiftY: -10 }, "2.jpeg": { shiftY: -10 }, "3.jpeg": { shiftY: 0 },
+    "4.jpg": { shiftY: -10 }, "5.jpg": { shiftY: -8 }, "6.jpg": { shiftY: -6 },
   },
 };
 
