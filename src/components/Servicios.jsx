@@ -14,6 +14,69 @@ const EXT_ORDER = {
   branding: ['jpg','jpeg','png'], // no se usa si está en KNOWN_PUBLIC_FILES, lo dejo por claridad
 };
 
+/* ============ Ajustes visuales por imagen (edítame) ============ */
+/* Por slug → por **nombre de archivo** (recomendado) o por **índice** (0-based) */
+const GALLERY_TWEAKS = {
+  // 👉 BRANDING: por NOMBRE
+  branding: {
+    "1.jpeg": { shiftY: -4 },
+    "2.jpg":  { shiftY: 0 },
+    "3.jpg":  { shiftY: 0 },
+    "4.jpg":  { shiftY: 0 },
+    "5.jpg":  { shiftY: 0 },
+    "6.jpg":  { shiftY: 0 },
+    // Ejemplos:
+    // "3.jpg": { shiftY: -8 },  // sube 8%
+    // "5.jpg": { shiftY: 12 },  // baja 12%
+  },
+
+  // 👉 RESTO DE CATEGORÍAS: por ÍNDICE (ajusta los que uses)
+  gigantografia: {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+    // Ejemplo: 2: { shiftY: -10 }
+  },
+  'produccion-visual': {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+  'digital-offset': {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+  rigidos: {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+  estampados: {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+  btl: {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+  redes: {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+  personalizados: {
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+};
+
+function basenameFromUrl(url) {
+  const last = url.split('/').pop() || '';
+  return last.split('?')[0];
+}
+function getTileTweaks(slug, url, index) {
+  const map = GALLERY_TWEAKS[slug] || {};
+  const name = basenameFromUrl(url);
+  // Prioridad: nombre de archivo > índice
+  return map[name] ?? map[index] ?? {};
+}
+
 /* =================== Descubrimiento con HEAD (solo si NO hay KNOWN_PUBLIC_FILES[slug]) =================== */
 async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {}) {
   const found = [];
@@ -66,8 +129,18 @@ function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
 }
 
 /* =================== UI helpers =================== */
-function Tile({ url, alt, eager = false, contain = false }) {
+function Tile({ url, alt, eager = false, contain = false, tweak = {} }) {
   if (!url) return null;
+  const {
+    shiftY = 0,  // % vertical (negativo = sube)
+    shiftX = 0,  // % horizontal
+    zoom   = 1,  // 1 = igual
+    contain: containOverride
+  } = tweak || {};
+
+  const useContain = typeof containOverride === 'boolean' ? containOverride : contain;
+  const transformNeeded = shiftX || shiftY || zoom !== 1;
+
   return (
     <div className="aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200">
       <img
@@ -75,9 +148,17 @@ function Tile({ url, alt, eager = false, contain = false }) {
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
-        className={contain
-          ? 'block w-auto h-auto max-w-full max-h-full object-contain mx-auto my-auto'
-          : 'h-full w-full object-cover'}
+        draggable={false}
+        className={
+          useContain
+            ? 'block w-auto h-auto max-w-full max-h-full object-contain mx-auto my-auto select-none pointer-events-none'
+            : 'h-full w-full object-cover select-none pointer-events-none will-change-transform'
+        }
+        style={
+          transformNeeded
+            ? { transform: `translate(${shiftX}%, ${shiftY}%) scale(${zoom})`, transformOrigin: '50% 50%' }
+            : undefined
+        }
       />
     </div>
   );
@@ -184,7 +265,14 @@ export default function Servicios() {
             {/* Collage: solo URLs reales (sin 404 jamás) */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {urls.map((url, i) => (
-                <Tile key={url} url={url} alt={`${activo.title} ${i + 1}`} eager={i < 3} contain={false} />
+                <Tile
+                  key={url}
+                  url={url}
+                  alt={`${activo.title} ${i + 1}`}
+                  eager={i < 3}
+                  contain={false}
+                  tweak={getTileTweaks(active, url, i)}
+                />
               ))}
               {urls.length === 0 && (
                 <div className="col-span-2 md:col-span-3 text-white/60 text-sm">
