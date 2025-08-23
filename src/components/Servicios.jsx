@@ -57,8 +57,8 @@ const GALLERY_TWEAKS = {
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
   redes: {
-    "1.jpeg": { shiftY: -15 }, "2.jpeg": { shiftY: -8 }, "3.jpeg": { shiftY: -17 },
-    "4.jpeg": { shiftY: -12 }, "5.jpeg": { shiftY: -15 }, "6.jpg": { shiftY: -3 },
+    "1.jpeg": { shiftY: -15 }, "2.jpeg": { shiftY: -8 }, "3.jpeg": { shiftY: -19 },
+    "4.jpeg": { shiftY: -12 }, "5.jpeg": { shiftY: -19 }, "6.jpg": { shiftY: -3 },
   },
   personalizados: {
     "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
