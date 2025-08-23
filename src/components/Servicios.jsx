@@ -19,10 +19,10 @@ const EXT_ORDER = {
 const GALLERY_TWEAKS = {
   // 👉 BRANDING: por NOMBRE
   branding: {
-    "1.jpeg": { shiftY: -8 },
-    "2.jpg":  { shiftY: -3 },
+    "1.jpeg": { shiftY: -12 },
+    "2.jpg":  { shiftY: -6 },
     "3.jpg":  { shiftY: 0 },
-    "4.jpg":  { shiftY: -8 },
+    "4.jpg":  { shiftY: -15 },
     "5.jpg":  { shiftY: -3 },
     "6.jpg":  { shiftY: 0 },
     // Ejemplos:
