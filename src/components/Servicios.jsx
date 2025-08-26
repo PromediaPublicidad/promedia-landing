@@ -1,7 +1,7 @@
 // src/sections/Servicios.jsx
 import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
-import { Palette, Printer, Building2, FileText, Package, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
+import { Palette, Printer, Building2, FileText, Play, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
 
 /* =================== Catálogo exacto (sin 404) =================== */
 const KNOWN_PUBLIC_FILES = {
@@ -44,7 +44,7 @@ const GALLERY_TWEAKS = {
     "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
-  rigidos: {
+  audiovisual: {
     "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
@@ -170,7 +170,7 @@ const servicios = [
   { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
   { icon: <Building2 size={28} />, title: 'Producción Visual',      desc: 'Displays, habladores y estructuras.',     slug: 'produccion-visual' },
   { icon: <FileText size={28} />, title: 'Digital & Offset',        desc: 'Alta calidad en distintos formatos.',     slug: 'digital-offset' },
-  { icon: <Package size={28} />, title: 'Impresión sobre rígidos',  desc: 'PVC, foamboard, acrílicos.',              slug: 'rigidos' },
+  { icon: <Play size={28} />, title: 'Producción Audiovisual',   desc: 'Creación de contenido visual, edición de video y sonido.',              slug: 'audiovisual' },
   { icon: <Shirt size={28} />,   title: 'Estampados térmicos',      desc: 'Textiles y materiales rígidos.',          slug: 'estampados' },
   { icon: <Rocket size={28} />,  title: 'Activaciones BTL',         desc: 'Azafatas, modelos y eventos.',            slug: 'btl' },
   { icon: <Smartphone size={28} />, title: 'Redes Sociales',        desc: 'Gestión de contenido y estrategia.',      slug: 'redes' },
@@ -182,7 +182,7 @@ const meta = {
   gigantografia:       { descripcion: 'Impacto en gran formato.',             tags: ['Lona', 'Vinilo', 'Gran Formato', 'Roll-up'] },
   'produccion-visual': { descripcion: 'Montajes y displays listos.',          tags: ['Display', 'Habladores', 'Stands', 'Backings'] },
   'digital-offset':    { descripcion: 'Impresión nítida y confiable.',        tags: ['Volantes', 'Tarjetas', 'Catálogos', 'Revistas'] },
-  rigidos:             { descripcion: 'Soportes durables y rígidos.',         tags: ['PVC', 'Foamboard', 'Acrílico', 'MDF'] },
+  audiovisual:         { descripcion: 'Anuncios, videos promocionales, etc.', tags: ['Camaras', 'Fotografia', 'Producer', 'Cine'] },
   estampados:          { descripcion: 'Estampado preciso en textil.',         tags: ['Camisetas', 'Gorras', 'Bolsos', 'Uniformes'] },
   btl:                 { descripcion: 'Experiencias de marca reales.',        tags: ['Activación', 'Sampling', 'Trade', 'Eventos'] },
   redes:               { descripcion: 'Contenido que conecta.',               tags: ['IG', 'FB', 'Reels', 'Ads'] },
