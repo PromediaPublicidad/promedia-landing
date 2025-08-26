@@ -33,7 +33,7 @@ const GALLERY_TWEAKS = {
   // 👉 RESTO DE CATEGORÍAS: por ÍNDICE (ajusta los que uses)
   gigantografia: {
     "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
-    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: -10 },
     // Ejemplo: 2: { shiftY: -10 }
   },
   'produccion-visual': {
