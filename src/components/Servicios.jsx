@@ -46,7 +46,7 @@ const GALLERY_TWEAKS = {
   },
   audiovisual: {
     "1.jpg": { shiftY: 0 }, "2.jpg": { shiftY: -15 }, "3.jpg": { shiftY: -15 },
-    "4.jpg": { shiftY: -12 }, "5.jpg": { shiftY: -20 }, "6.jpg": { shiftY: -20 },
+    "4.jpg": { shiftY: -12 }, "5.JPG": { shiftY: -20 }, "6.JPG": { shiftY: -20 },
   },
   instalaciones: {
     "1.jpg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
