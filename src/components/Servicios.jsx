@@ -5,11 +5,11 @@ import { Palette, Printer, Building2, FileText, Play, Shirt, Rocket, Smartphone,
 
 /* =================== Catálogo exacto (sin 404) =================== */
 const KNOWN_PUBLIC_FILES = {
-  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.JPG"], // lo que tienes hoy
+  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"], // lo que tienes hoy
 };
 
 /* Orden de extensiones por categoría (solo para probes de otros slugs) */
-const DEFAULT_EXTS = ['webp','jpg','jpeg','png','JPG'];
+const DEFAULT_EXTS = ['webp','jpg','jpeg','png','JPG', 'PNG' ];
 const EXT_ORDER = {
   branding: ['jpg','jpeg','png', 'JPG'], // no se usa si está en KNOWN_PUBLIC_FILES, lo dejo por claridad
 };
