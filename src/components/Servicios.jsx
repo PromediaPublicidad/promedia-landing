@@ -1,7 +1,7 @@
 // src/sections/Servicios.jsx
 import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
-import { Palette, Printer, Building2, FileText, Play, Shirt, Rocket, Smartphone, Target } from 'lucide-react';
+import { Palette, Printer, Building2, FileText, Play, Shirt, Rocket, Smartphone, Target, Cog } from 'lucide-react';
 
 /* =================== Catálogo exacto (sin 404) =================== */
 const KNOWN_PUBLIC_FILES = {
@@ -45,7 +45,11 @@ const GALLERY_TWEAKS = {
     "4.jpg": { shiftY: -13 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: -12 },
   },
   audiovisual: {
-    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "1.jpg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
+  },
+  instalaciones: {
+    "1.jpg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
   estampados: {
@@ -53,7 +57,7 @@ const GALLERY_TWEAKS = {
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
   btl: {
-    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "1.jpeg": { shiftY: 0 }, "2.jpeg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
   redes: {
@@ -166,15 +170,16 @@ function Tile({ url, alt, eager = false, contain = false, tweak = {} }) {
 
 /* =================== Data =================== */
 const servicios = [
-  { icon: <Palette size={28} />, title: 'Branding & Diseño',        desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
-  { icon: <Printer size={28} />, title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
-  { icon: <Building2 size={28} />, title: 'Producción Visual',      desc: 'Displays, habladores y estructuras.',     slug: 'produccion-visual' },
-  { icon: <FileText size={28} />, title: 'Digital & Offset',        desc: 'Alta calidad en distintos formatos.',     slug: 'digital-offset' },
-  { icon: <Play size={28} />, title: 'Producción Audiovisual',      desc: 'Creación de contenido visual.',           slug: 'audiovisual' },
-  { icon: <Shirt size={28} />,   title: 'Estampados térmicos',      desc: 'Textiles y materiales rígidos.',          slug: 'estampados' },
-  { icon: <Rocket size={28} />,  title: 'Activaciones BTL',         desc: 'Azafatas, modelos y eventos.',            slug: 'btl' },
-  { icon: <Smartphone size={28} />, title: 'Redes Sociales',        desc: 'Gestión de contenido y estrategia.',      slug: 'redes' },
-  { icon: <Target size={28} />,  title: 'Soluciones Personalizadas',desc: 'A tu medida.',                             slug: 'personalizados' },
+  { icon: <Palette size={28} />,   title: 'Branding & Diseño',        desc: 'Diseño de piezas gráficas publicitarias.', slug: 'branding' },
+  { icon: <Printer size={28} />,   title: 'Impresión Gigantográfica', desc: 'Lonas, vinilos y gran formato.',          slug: 'gigantografia' },
+  { icon: <Building2 size={28} />, title: 'Producción Visual',        desc: 'Displays, habladores y estructuras.',     slug: 'produccion-visual' },
+  { icon: <FileText size={28} />,  title: 'Digital & Offset',         desc: 'Alta calidad en distintos formatos.',     slug: 'digital-offset' },
+  { icon: <Play size={28} />,      title: 'Producción Audiovisual',   desc: 'Creación de contenido visual.',           slug: 'audiovisual' },
+  { icon: <Cog size={28} />,       title: 'Instalaciones',            desc: 'Proceso de instalaciones completos.',     slug: 'instalaciones' },
+  { icon: <Shirt size={28} />,     title: 'Estampados térmicos',      desc: 'Textiles y materiales rígidos.',          slug: 'estampados' },
+  { icon: <Rocket size={28} />,    title: 'Activaciones BTL',         desc: 'Azafatas, modelos y eventos.',            slug: 'btl' },
+  { icon: <Smartphone size={28} />,title: 'Redes Sociales',           desc: 'Gestión de contenido y estrategia.',      slug: 'redes' },
+  { icon: <Target size={28} />,    title: 'Soluciones Personalizadas',desc: 'A tu medida.',                             slug: 'personalizados' },
 ];
 
 const meta = {
@@ -183,6 +188,7 @@ const meta = {
   'produccion-visual': { descripcion: 'Montajes y displays listos.',          tags: ['Display', 'Habladores', 'Stands', 'Backings'] },
   'digital-offset':    { descripcion: 'Impresión nítida y confiable.',        tags: ['Volantes', 'Tarjetas', 'Catálogos', 'Revistas'] },
   audiovisual:         { descripcion: 'Anuncios, videos promocionales, etc.', tags: ['Camaras', 'Fotografia', 'Producer', 'Cine'] },
+  instalaciones:       { descripcion: 'Montaje profesional en estructuras y piezas especiales.', tags: ['Estructuras', 'Señalética', 'Montaje', 'Vinilos'] },
   estampados:          { descripcion: 'Estampado preciso en textil.',         tags: ['Camisetas', 'Gorras', 'Bolsos', 'Uniformes'] },
   btl:                 { descripcion: 'Experiencias de marca reales.',        tags: ['Activación', 'Sampling', 'Trade', 'Eventos'] },
   redes:               { descripcion: 'Contenido que conecta.',               tags: ['IG', 'FB', 'Reels', 'Ads'] },
