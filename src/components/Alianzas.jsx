@@ -15,6 +15,8 @@ const logos = [
   "/alliances/Decathlon.png",
   "/alliances/Aliss.png",
   "/alliances/Kids.png",
+  "/alliances/Arrogante.png",
+  "/alliances/Kanibal.png",
   "/alliances/Kors.png",
   "/alliances/Pacific.png",
   "/alliances/Azahar.png",
