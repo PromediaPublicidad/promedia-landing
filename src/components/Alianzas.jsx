@@ -17,7 +17,6 @@ const logos = [
   "/alliances/Kids.png",
   "/alliances/Arrogante.png",
   "/alliances/Kanibal.png",
-  "/alliances/Kors.png",
   "/alliances/Pacific.png",
   "/alliances/Azahar.png",
   "/alliances/Fendi.png",
@@ -31,8 +30,7 @@ const logos = [
   "/alliances/Texas.png",
   "/alliances/Helly.png",
   "/alliances/AlBasha.png",
-  "/alliances/Ramada.png",
-  "/alliances/Rocky.png",
+  "/alliances/Ramada.png"
 ];
 
 /** Row: marquee sin mask-image (evita glitches a 90% de zoom) */
