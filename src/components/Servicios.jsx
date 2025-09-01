@@ -37,8 +37,8 @@ const GALLERY_TWEAKS = {
     // Ejemplo: 2: { shiftY: -10 }
   },
   'produccion-visual': {
-    "1.jpg": { shiftY: 0 }, "2.jpeg": { shiftY: 0 }, "3.jpeg": { shiftY: -15 },
-    "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: -16 }, "6.jpeg": { shiftY: -16 },
+    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpeg": { shiftY: -15 },
+    "4.jpg": { shiftY: 0 }, "5.jpeg": { shiftY: -16 }, "6.jpeg": { shiftY: -16 },
   },
   'digital-offset': {
     "1.jpg": { shiftY: -10 }, "2.jpg": { shiftY: -8 }, "3.jpg": { shiftY: -12 },
