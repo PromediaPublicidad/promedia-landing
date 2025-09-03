@@ -46,7 +46,6 @@ function emailHTML(p) {
 }
 
 async function readJson(req) {
-  // Asegura parseo incluso si Vercel no popula req.body
   if (req.body && typeof req.body === "object") return req.body;
   return await new Promise((resolve, reject) => {
     let data = "";
@@ -60,9 +59,12 @@ async function readJson(req) {
 
 export default async function handler(req, res) {
   try {
-    // Ping de salud para probar sin form
+    // GET = modo diagnóstico
     if (req.method === "GET") {
-      return res.status(200).json({ ok: true, env: !!process.env.RESEND_API_KEY });
+      return res.status(200).json({
+        ok: true,
+        env: { RESEND_API_KEY: !!process.env.RESEND_API_KEY, FROM, TO },
+      });
     }
 
     if (req.method !== "POST") {
@@ -76,7 +78,6 @@ export default async function handler(req, res) {
 
     const body = await readJson(req);
     const { name, email, phone, area, portfolio, message, attachment } = body || {};
-
     if (!name || !email || !area) {
       return res.status(400).json({ ok:false, error:"Faltan name, email o area" });
     }
@@ -93,17 +94,38 @@ export default async function handler(req, res) {
 
     const html = emailHTML({ name, email, phone, area, portfolio, message });
 
-    const r = await resend.emails.send({
-      from: FROM,
-      to: [TO],
-      subject: `Postulación: ${name} – ${area}`,
-      html,
-      reply_to: email,
-      attachments: attachments.length ? attachments : undefined,
-    });
+    let r;
+    try {
+      r = await resend.emails.send({
+        from: FROM,
+        to: [TO],
+        subject: `Postulación: ${name} – ${area}`,
+        html,
+        reply_to: email,
+        attachments: attachments.length ? attachments : undefined,
+      });
+    } catch (err) {
+      // Errores de red/SDK
+      console.error("Resend send error:", err);
+      return res.status(500).json({
+        ok: false,
+        error: err?.message || "Fallo al contactar Resend",
+        code: err?.name,
+      });
+    }
 
-    if (r.error) return res.status(500).json({ ok:false, error: String(r.error) });
-    return res.status(200).json({ ok:true, id: r.data?.id });
+    if (r?.error) {
+      // Errores de API (validación, dominio, etc.)
+      console.error("Resend API error:", r.error);
+      return res.status(500).json({
+        ok: false,
+        error: r.error?.message || "Error de Resend",
+        code: r.error?.name,
+        details: r.error, // para ver campo exacto en Network
+      });
+    }
+
+    return res.status(200).json({ ok:true, id: r?.data?.id });
   } catch (e) {
     console.error("apply error", e);
     return res.status(500).json({ ok:false, error: e?.message || "Server error" });
