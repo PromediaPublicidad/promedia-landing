@@ -1,9 +1,10 @@
 // /api/apply.js  (Vercel Serverless Function - ESM)
 import { Resend } from "resend";
 
-const FROM  = process.env.FROM_EMAIL || "Promedia <onboarding@resend.dev>";
-const TO    = process.env.TO_EMAIL   || "info@promediapublicidad.com";
 const BRAND = "#167c88";
+const FROM_DEFAULT = "Promedia <onboarding@resend.dev>";
+const FROM_RAW = process.env.FROM_EMAIL || FROM_DEFAULT;
+const TO_EMAIL = process.env.TO_EMAIL || "info@promediapublicidad.com";
 
 function emailHTML(p) {
   const { name, email, phone, area, portfolio, message } = p;
@@ -45,25 +46,29 @@ function emailHTML(p) {
   </div></div></body></html>`;
 }
 
+function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||"").trim()); }
+
 async function readJson(req) {
   if (req.body && typeof req.body === "object") return req.body;
   return await new Promise((resolve, reject) => {
     let data = "";
     req.on("data", c => (data += c));
-    req.on("end", () => {
-      try { resolve(JSON.parse(data || "{}")); } catch (e) { reject(e); }
-    });
+    req.on("end", () => { try { resolve(JSON.parse(data || "{}")); } catch (e) { reject(e); } });
     req.on("error", reject);
   });
 }
 
 export default async function handler(req, res) {
   try {
-    // GET = modo diagnóstico
+    // Diagnóstico rápido
     if (req.method === "GET") {
       return res.status(200).json({
         ok: true,
-        env: { RESEND_API_KEY: !!process.env.RESEND_API_KEY, FROM, TO },
+        env: {
+          RESEND_API_KEY: !!process.env.RESEND_API_KEY,
+          FROM: FROM_RAW,
+          TO: TO_EMAIL
+        }
       });
     }
 
@@ -81,6 +86,7 @@ export default async function handler(req, res) {
     if (!name || !email || !area) {
       return res.status(400).json({ ok:false, error:"Faltan name, email o area" });
     }
+    const replyTo = isValidEmail(email) ? email : undefined;
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -94,34 +100,38 @@ export default async function handler(req, res) {
 
     const html = emailHTML({ name, email, phone, area, portfolio, message });
 
-    let r;
-    try {
+    // 1er intento con FROM_RAW (por si ya verificaste dominio)
+    let r = await resend.emails.send({
+      from: FROM_RAW,
+      to: [TO_EMAIL],
+      subject: `Postulación: ${name} – ${area}`,
+      html,
+      reply_to: replyTo,
+      attachments: attachments.length ? attachments : undefined,
+    });
+
+    // Si el "from" no es válido/permitido, reintenta con FROM_DEFAULT
+    const fromErrorMsg = r?.error?.message || "";
+    const looksLikeFromError =
+      /from/i.test(fromErrorMsg) && /(valid|sender|verified|domain)/i.test(fromErrorMsg);
+
+    if (r?.error && looksLikeFromError && FROM_RAW !== FROM_DEFAULT) {
       r = await resend.emails.send({
-        from: FROM,
-        to: [TO],
+        from: FROM_DEFAULT,
+        to: [TO_EMAIL],
         subject: `Postulación: ${name} – ${area}`,
         html,
-        reply_to: email,
+        reply_to: replyTo,
         attachments: attachments.length ? attachments : undefined,
-      });
-    } catch (err) {
-      // Errores de red/SDK
-      console.error("Resend send error:", err);
-      return res.status(500).json({
-        ok: false,
-        error: err?.message || "Fallo al contactar Resend",
-        code: err?.name,
       });
     }
 
     if (r?.error) {
-      // Errores de API (validación, dominio, etc.)
-      console.error("Resend API error:", r.error);
       return res.status(500).json({
         ok: false,
         error: r.error?.message || "Error de Resend",
-        code: r.error?.name,
-        details: r.error, // para ver campo exacto en Network
+        code: r.error?.name || r.error?.type,
+        details: r.error
       });
     }
 
