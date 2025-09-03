@@ -67,7 +67,8 @@ function FileUpload({ id, onChange }) {
         </span>
         <span className="text-xs text-slate-500">Tamaño máx. 10MB</span>
       </label>
-      <input id={id} type="file" className="sr-only" onChange={onChange} />
+      {/* añade name="cv" si ya conectaste el backend */}
+      <input id={id} name="cv" type="file" className="sr-only" onChange={onChange} />
     </div>
   );
 }
@@ -104,7 +105,7 @@ export default function TrabajaConNosotros() {
           className="mx-auto mb-8 max-w-3xl text-center"
         >
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
-           Únete al <span className="text-[#167c88]">Team</span>
+            ÚNETE AL <span className="text-[#167c88]">TEAM</span>
           </h1>
           <p className="mt-3 text-slate-600">
             Cuéntanos quién eres y en qué te gustaría sumar. Amamos el talento con iniciativa.
@@ -135,15 +136,18 @@ export default function TrabajaConNosotros() {
               <Input id="phone" name="phone" type="tel" placeholder="+507 ..." />
             </div>
 
+            {/* CAMBIO: Área -> Cargo */}
             <div>
-              <Label htmlFor="area">Área de interés</Label>
+              <Label htmlFor="area">Cargo al que aplicas</Label>
               <Select id="area" name="area" defaultValue="" required>
-                <option value="" disabled>Selecciona un área</option>
-                <option>Marketing</option>
-                <option>Asesoras</option>
-                <option>Producción</option>
-                <option>Gerencia</option>
-                <option>Otra</option>
+                <option value="" disabled>Selecciona un cargo</option>
+                <option>Project Manager</option>
+                <option>Community Manager</option>
+                <option>Diseñador Gráfico</option>
+                <option>Operador de Imprenta</option>
+                <option>Instalador</option>
+                <option>Producción Audiovisual</option>
+                <option>Asesor(a) de Ventas</option>
               </Select>
             </div>
 
