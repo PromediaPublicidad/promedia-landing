@@ -4,7 +4,7 @@ import { Resend } from "resend";
 const BRAND = "#167c88";
 const FROM_DEFAULT = "Promedia <onboarding@resend.dev>";
 const FROM_RAW = process.env.FROM_EMAIL || FROM_DEFAULT;
-const TO_EMAIL = process.env.TO_EMAIL || "info@promediapublicidad.com";
+const TO_EMAIL = process.env.TO_EMAIL || "promarketing@promediapublicidad.com";
 
 function emailHTML(p) {
   const { name, email, phone, area, portfolio, message } = p;
