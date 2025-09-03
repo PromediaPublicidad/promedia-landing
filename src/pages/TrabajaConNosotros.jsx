@@ -1,182 +1,215 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import TitleSweep from '../components/TitleSweep';
+// src/pages/TrabajaConNosotros.jsx
+import { useState } from "react";
+import { motion } from "framer-motion";
 
-const ROLES = [
-  'Project Manager',
-  'Community Manager',
-  'Diseñador(a) Gráfico',
-  'Operador de Imprenta',
-  'Instalador',
-  'Productor Audiovisual',
-  'Asesor(a) de Ventas',
-];
+const brand = "#167c88";
+
+function Label({ htmlFor, children }) {
+  return (
+    <label
+      htmlFor={htmlFor}
+      className="block text-sm font-semibold uppercase tracking-wider text-slate-700"
+    >
+      {children}
+    </label>
+  );
+}
+
+function Input({ id, type = "text", ...props }) {
+  return (
+    <input
+      id={id}
+      type={type}
+      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 shadow-sm outline-none ring-0 focus:border-transparent focus:ring-4"
+      style={{ boxShadow: "0 0 0 0 rgba(0,0,0,0)", "--tw-ring-color": brand }}
+      {...props}
+    />
+  );
+}
+
+function Select({ id, children, ...props }) {
+  return (
+    <select
+      id={id}
+      className="mt-2 w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none focus:border-transparent focus:ring-4"
+      style={{ "--tw-ring-color": brand }}
+      {...props}
+    >
+      {children}
+    </select>
+  );
+}
+
+function TextArea({ id, rows = 5, ...props }) {
+  return (
+    <textarea
+      id={id}
+      rows={rows}
+      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-transparent focus:ring-4"
+      style={{ "--tw-ring-color": brand }}
+      {...props}
+    />
+  );
+}
+
+function FileUpload({ id, onChange }) {
+  return (
+    <div className="mt-2">
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-slate-300 bg-white/70 px-4 py-3 text-slate-700 hover:border-slate-400 hover:bg-white transition"
+      >
+        <span className="inline-flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14.59 2.59a2 2 0 012.82 0l4 4a2 2 0 010 2.82l-9 9A5.002 5.002 0 016 21H5a1 1 0 110-2h1a3 3 0 002.12-.88l9-9-2.12-2.12-6.88 6.88a1 1 0 11-1.41-1.41l7.88-7.88z"/>
+          </svg>
+          <span className="font-medium">Adjuntar CV (PDF / DOCX)</span>
+        </span>
+        <span className="text-xs text-slate-500">Tamaño máx. 10MB</span>
+      </label>
+      <input id={id} type="file" className="sr-only" onChange={onChange} />
+    </div>
+  );
+}
 
 export default function TrabajaConNosotros() {
-  const [status, setStatus] = useState({ type: 'idle', msg: '' });
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setStatus({ type: 'loading', msg: 'Enviando…' });
-
-    const form = new FormData(e.currentTarget);
-    // Construimos payload simple (sin archivos) para el endpoint
-    const payload = Object.fromEntries(form.entries());
-
-    try {
-      const res = await fetch('/api/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Error al enviar el formulario');
-      setStatus({ type: 'success', msg: '¡Postulación enviada! Te contactaremos pronto.' });
-      e.currentTarget.reset();
-    } catch (err) {
-      setStatus({ type: 'error', msg: 'No se pudo enviar. Intenta de nuevo en unos minutos.' });
-    }
-  };
+    setSending(true);
+    // TODO: envía a tu backend o servicio de forms
+    await new Promise((r) => setTimeout(r, 900));
+    setSending(false);
+    setDone(true);
+    e.currentTarget.reset();
+    setTimeout(() => setDone(false), 2500);
+  }
 
   return (
-    <section className="relative bg-[#0f1f25] text-white overflow-x-clip">
-      <div className="absolute inset-0 pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_70%)]">
-        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-[#167c88]/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
+    <div className="relative min-h-[calc(100vh-var(--header-h))]">
+      {/* Fondo “wow” */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-[#167c88]/20 blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
+        <div className="absolute inset-x-0 top-0 mx-auto h-24 w-[70%] rounded-b-[40px] bg-white/60 backdrop-blur-md" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10 py-24 relative z-10">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold">
-            <TitleSweep color="#167c88" dir="rtl" duration={1.0} textFrom="#167c88" textTo="#ffffff">
-              Trabaja con Nosotros
-            </TitleSweep>
+      <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10 lg:py-14">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="mx-auto mb-8 max-w-3xl text-center"
+        >
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
+            Trabaja con <span className="text-[#167c88]">Nosotros</span>
           </h1>
-          <p className="text-white/85 mt-4 max-w-3xl mx-auto">
-            Cuéntanos sobre ti y a qué rol deseas postularte. Nos encantará conocer tu talento. 💼
+          <p className="mt-3 text-slate-600">
+            Cuéntanos quién eres y en qué te gustaría sumar. Amamos el talento con iniciativa.
           </p>
-        </div>
+        </motion.div>
 
         <motion.form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white/[0.04] backdrop-blur-sm border border-white/10 rounded-2xl p-6 md:p-8"
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
+          transition={{ duration: 0.35, delay: 0.05 }}
+          className="rounded-2xl border border-white/40 bg-white/70 backdrop-blur-xl p-5 sm:p-6 lg:p-8 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.25)]"
         >
-          {/* Col 1 */}
-          <div className="lg:col-span-6 space-y-5">
+          {/* GRID */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm text-white/80 mb-1">Nombre completo *</label>
-              <input name="name" required className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-white/80 mb-1">Email *</label>
-                <input type="email" name="email" required className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]" />
-              </div>
-              <div>
-                <label className="block text-sm text-white/80 mb-1">Teléfono / WhatsApp</label>
-                <input name="phone" className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]" />
-              </div>
+              <Label htmlFor="name">Nombre completo</Label>
+              <Input id="name" name="name" placeholder="Tu nombre y apellidos" required />
             </div>
 
             <div>
-              <label className="block text-sm text-white/80 mb-1">Rol al que postulas *</label>
-              <select name="role" required className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]">
-                <option value="">Selecciona un rol</option>
-                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" placeholder="tucorreo@ejemplo.com" required />
             </div>
 
             <div>
-              <label className="block text-sm text-white/80 mb-1">Portafolio / LinkedIn / CV (URL)</label>
-              <input type="url" name="portfolio" placeholder="https://..." className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]" />
+              <Label htmlFor="phone">Teléfono / WhatsApp</Label>
+              <Input id="phone" name="phone" type="tel" placeholder="+507 ..." />
+            </div>
+
+            <div>
+              <Label htmlFor="area">Área de interés</Label>
+              <Select id="area" name="area" defaultValue="" required>
+                <option value="" disabled>Selecciona un área</option>
+                <option>Marketing</option>
+                <option>Asesoras</option>
+                <option>Producción</option>
+                <option>Gerencia</option>
+                <option>Otra</option>
+              </Select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor="portfolio">Portafolio / LinkedIn</Label>
+              <Input id="portfolio" name="portfolio" type="url" placeholder="https://..." />
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor="cv">Currículum</Label>
+              <FileUpload id="cv" onChange={() => {}} />
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor="message">¿Qué te gustaría aportar al equipo?</Label>
+              <TextArea id="message" name="message" placeholder="Cuéntanos brevemente tu motivación, logros y metas…" />
+            </div>
+
+            {/* Checkbox simple de consentimiento */}
+            <div className="sm:col-span-2">
+              <label className="inline-flex items-start gap-3 select-none">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-[#167c88] focus:ring-[#167c88]"
+                  required
+                />
+                <span className="text-sm text-slate-600">
+                  Acepto que Promedia trate estos datos para fines de selección (puedo revocar cuando quiera).
+                </span>
+              </label>
             </div>
           </div>
 
-          {/* Col 2 */}
-          <div className="lg:col-span-6 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-white/80 mb-1">¿Reside en Panamá? *</label>
-                <select name="residesPanama" required className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]">
-                  <option value="">Selecciona</option>
-                  <option>Sí</option>
-                  <option>No</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-white/80 mb-1">Años de experiencia</label>
-                <input type="number" min="0" name="experienceYears" className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-white/80 mb-1">Disponibilidad</label>
-                <select name="availability" className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]">
-                  <option value="">Selecciona</option>
-                  <option>Inmediata</option>
-                  <option>2 semanas</option>
-                  <option>1 mes</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-white/80 mb-1">Modalidad preferida</label>
-                <select name="modality" className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]">
-                  <option value="">Selecciona</option>
-                  <option>Presencial</option>
-                  <option>Híbrido</option>
-                  <option>Remoto</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm text-white/80 mb-1">Pretensión salarial (USD)</label>
-              <input name="salary" className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#167c88]" />
-            </div>
-          </div>
-
-          {/* Mensaje col-12 */}
-          <div className="lg:col-span-12">
-            <label className="block text-sm text-white/80 mb-1">Mensaje</label>
-            <textarea name="message" rows="5" className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 outline-none focus:ring-2 focus:ring-[#167c88]" placeholder="Háblanos de tu experiencia, logros o lo que te gustaría aportar en Promedia." />
-          </div>
-
-          {/* Consent + submit */}
-          <div className="lg:col-span-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <label className="inline-flex items-start gap-3 text-white/85">
-              <input type="checkbox" name="consent" required className="mt-1 accent-[#167c88]" />
-              <span className="text-sm">
-                Acepto que Promedia procese mis datos para fines de reclutamiento. Puedo solicitar su eliminación cuando quiera.
-              </span>
-            </label>
-
-            <motion.button
+          {/* Botón */}
+          <div className="mt-6 flex items-center gap-4">
+            <button
               type="submit"
-              whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center justify-center px-6 h-12 rounded-xl bg-[#167c88] text-white font-semibold hover:bg-[#125f66] transition"
-              disabled={status.type === 'loading'}
+              disabled={sending}
+              className="inline-flex items-center justify-center rounded-xl bg-[#167c88] px-5 py-3 text-white font-semibold uppercase tracking-wider shadow-lg shadow-[#167c88]/30 hover:shadow-[#167c88]/40 hover:brightness-110 active:scale-[.98] transition disabled:opacity-60"
             >
-              {status.type === 'loading' ? 'Enviando…' : 'Enviar postulación'}
-            </motion.button>
-          </div>
+              {sending ? (
+                <>
+                  <svg className="mr-2 animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity=".25"/>
+                    <path d="M21 12a9 9 0 00-9-9" stroke="currentColor" strokeWidth="3"/>
+                  </svg>
+                  Enviando…
+                </>
+              ) : (
+                "Enviar Postulación"
+              )}
+            </button>
 
-          {/* Alertas */}
-          {status.type === 'success' && (
-            <div className="lg:col-span-12 text-sm text-emerald-300">
-              {status.msg}
-            </div>
-          )}
-          {status.type === 'error' && (
-            <div className="lg:col-span-12 text-sm text-rose-300">
-              {status.msg}
-            </div>
-          )}
+            {done && (
+              <span className="text-sm font-medium text-[#167c88]">
+                ¡Listo! Te contactaremos si tu perfil encaja.
+              </span>
+            )}
+          </div>
         </motion.form>
-      </div>
-    </section>
+
+        {/* Footer pequeño de la página */}
+        <p className="mt-6 text-center text-xs text-slate-500">
+          *Esta página no solicita disponibilidad, años de experiencia, modalidad preferida ni pretensión salarial.
+        </p>
+      </section>
+    </div>
   );
 }

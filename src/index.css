@@ -100,3 +100,22 @@ img, picture img {
 
 /* Si alguna imagen SÍ debe ser clicable/hover, usa esta clase */
 img.img-interactive { pointer-events: auto; }
+
+/* src/index.css */
+.logo-floating {
+  transform: translateY(10px);
+}
+@media (min-width: 1024px) {
+  .logo-floating { transform: translateY(16px); }
+}
+
+/* Oculta el logo flotante fuera del home */
+.route-internal .logo-floating,
+.route-internal [data-floating-logo]{
+  display: none !important;
+}
+
+/* Cinturón y tirantes por si la clase no está aún */
+.route-internal img[src="/logos/Pro.png"]{
+  display: none !important;
+}
