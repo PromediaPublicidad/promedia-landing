@@ -43,6 +43,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/trabaja" element={<TrabajaConNosotros />} />
+        <Route path="/unete"   element={<TrabajaConNosotros />} />
       </Routes>
     </>
   );

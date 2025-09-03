@@ -170,7 +170,7 @@ export default function Header() {
             <a href="/#servicios"  className={navItemClass}>Servicios</a>
             <a href="/#conocenos"  className={navItemClass}>Conócenos</a>
             <a href="/#contacto"   className={navItemClass}>Contáctanos</a>
-            <Link to="/trabaja"    className={navItemClass}>Trabaja con Nosotros</Link>
+            <Link to="/unete"   className={navItemClass}>Únete al Team</Link>
           </nav>
         </div>
       </header>

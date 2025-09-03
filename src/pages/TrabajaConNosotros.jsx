@@ -104,7 +104,7 @@ export default function TrabajaConNosotros() {
           className="mx-auto mb-8 max-w-3xl text-center"
         >
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
-            Trabaja con <span className="text-[#167c88]">Nosotros</span>
+           Únete al <span className="text-[#167c88]">Team</span>
           </h1>
           <p className="mt-3 text-slate-600">
             Cuéntanos quién eres y en qué te gustaría sumar. Amamos el talento con iniciativa.
@@ -207,7 +207,7 @@ export default function TrabajaConNosotros() {
 
         {/* Footer pequeño de la página */}
         <p className="mt-6 text-center text-xs text-slate-500">
-          *Esta página no solicita disponibilidad, años de experiencia, modalidad preferida ni pretensión salarial.
+          *Este formulario no solicita disponibilidad, años de experiencia, modalidad preferida ni pretensión salarial.
         </p>
       </section>
     </div>
