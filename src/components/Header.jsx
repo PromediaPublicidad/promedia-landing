@@ -50,6 +50,7 @@ function MobileMenu({ open, onClose, linkClass }) {
                 <a href="#servicios" className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Servicios</a>
                 <a href="#conocenos" className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Conócenos</a>
                 <a href="#contacto"  className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Contáctanos</a>
+                <Link to="/trabaja" className="hover:underline">Trabaja con Nosotros</Link>
               </nav>
             </div>
           </motion.aside>
@@ -132,6 +133,7 @@ export default function Header({ logoScrolled }) {
             <a href="#servicios" className="hover:underline">Servicios</a>
             <a href="#conocenos" className="hover:underline">Conócenos</a>
             <a href="#contacto"  className="hover:underline">Contáctanos</a>
+            <Link to="/trabaja"   className={`${linkClass} text-[#167c88] hover:bg-[#167c88]/5`} onClick={onClose}>Trabaja con Nosotros</Link>
           </nav>
 
           {/* Botón móvil (también alineado a la derecha) */}
