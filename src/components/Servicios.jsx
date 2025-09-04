@@ -4,20 +4,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { Palette, Printer, Building2, FileText, Play, Shirt, Rocket, Smartphone, Target, Cog } from 'lucide-react';
 
 /* =================== Catálogo exacto (sin 404) =================== */
+/* Si pones un index.json por categoría, lo lee primero: /public/services/<slug>/index.json */
 const KNOWN_PUBLIC_FILES = {
-  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"], // lo que tienes hoy
+  // Dejas aquí listas fijas si quieres “pinnear” el orden. Si hay index.json, tiene prioridad.
+  branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"],
 };
 
-/* Orden de extensiones por categoría (solo para probes de otros slugs) */
-const DEFAULT_EXTS = ['webp','jpg','jpeg','png','JPG', 'PNG' ];
+const DEFAULT_EXTS = ['webp','jpg','jpeg','png','JPG','PNG'];
 const EXT_ORDER = {
-  branding: ['jpg','jpeg','png', 'JPG'], // no se usa si está en KNOWN_PUBLIC_FILES, lo dejo por claridad
+  branding: ['jpg','jpeg','png','JPG'],
 };
 
-/* ============ Ajustes visuales por imagen (edítame) ============ */
-/* Por slug → por **nombre de archivo** (recomendado) o por **índice** (0-based) */
+/* ============ Ajustes visuales por imagen (shift/zoom) ============ */
 const GALLERY_TWEAKS = {
-  // 👉 BRANDING: por NOMBRE
   branding: {
     "1.jpeg": { shiftY: -12 },
     "2.jpg":  { shiftY: -6 },
@@ -25,16 +24,10 @@ const GALLERY_TWEAKS = {
     "4.jpg":  { shiftY: -15 },
     "5.jpg":  { shiftY: -3 },
     "6.jpg":  { shiftY: 0 },
-    // Ejemplos:
-    // "3.jpg": { shiftY: -8 },  // sube 8%
-    // "5.jpg": { shiftY: 12 },  // baja 12%
   },
-
-  // 👉 RESTO DE CATEGORÍAS: por ÍNDICE (ajusta los que uses)
   gigantografia: {
     "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: -10 },
-    // Ejemplo: 2: { shiftY: -10 }
   },
   'produccion-visual': {
     "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpeg": { shiftY: -15 },
@@ -77,31 +70,53 @@ function basenameFromUrl(url) {
 function getTileTweaks(slug, url, index) {
   const map = GALLERY_TWEAKS[slug] || {};
   const name = basenameFromUrl(url);
-  // Prioridad: nombre de archivo > índice
   return map[name] ?? map[index] ?? {};
 }
 
-/* =================== Descubrimiento con HEAD (solo si NO hay KNOWN_PUBLIC_FILES[slug]) =================== */
-async function probePublic(slug, { maxN = 8, exts = ['jpg','jpeg','png'] } = {}) {
-  const found = [];
-  let seenAny = false;
-  for (let n = 1; n <= maxN; n++) {
-    let hit = null;
-    for (const ext of exts) {
-      const url = `/services/${slug}/${n}.${ext}`;
-      try {
-        const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-        if (res.ok) { hit = url; break; }
-      } catch { /* ignore */ }
+/* =================== Descubrimiento optimizado =================== */
+/** 1) Lee /services/<slug>/index.json si existe (más rápido y 100% exacto) */
+async function tryManifest(slug) {
+  try {
+    const res = await fetch(`/services/${slug}/index.json`, { method: 'GET', cache: 'force-cache' });
+    if (!res.ok) return null;
+    const list = await res.json();
+    if (Array.isArray(list) && list.length) {
+      // admite strings o {file:"x.jpg"}
+      return list.map(item => {
+        const name = typeof item === 'string' ? item : item?.file;
+        return name ? `/services/${slug}/${name}` : null;
+      }).filter(Boolean);
     }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** 2) Fallback: HEAD paralelo (rápido, con corte cuando hay huecos) */
+async function probePublicParallel(slug, { maxN = 12, exts = ['jpg','jpeg','png'] } = {}) {
+  const urls = [];
+  let misses = 0;
+
+  for (let n = 1; n <= maxN; n++) {
+    // probá todas las extensiones en paralelo y quédate con la primera que exista
+    const checks = exts.map(ext => {
+      const url = `/services/${slug}/${n}.${ext}`;
+      return fetch(url, { method: 'HEAD' }).then(r => (r.ok ? url : null)).catch(() => null);
+    });
+
+    const results = await Promise.allSettled(checks);
+    const hit = results.map(r => (r.status === 'fulfilled' ? r.value : null)).find(Boolean);
+
     if (hit) {
-      found.push(hit);
-      seenAny = true;
-    } else if (seenAny) {
-      break;
+      urls.push(hit);
+      misses = 0; // reinicia misses después de un acierto (permite huecos aislados)
+    } else {
+      misses++;
+      if (misses >= 2) break; // dos seguidos sin encontrar → asumimos fin
     }
   }
-  return found;
+  return urls;
 }
 
 const discoveryCache = new Map(); // slug -> string[]
@@ -112,6 +127,24 @@ function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // 0) Si ya hay caché, úsala (evita nuevos HEADs)
+      const cached = discoveryCache.get(slug);
+      if (cached?.length) {
+        setUrls(cached);
+        return;
+      }
+
+      // 1) Manifest tiene prioridad (si existe)
+      const manifest = await tryManifest(slug);
+      if (manifest && manifest.length) {
+        if (!cancelled) {
+          discoveryCache.set(slug, manifest);
+          setUrls(manifest);
+        }
+        return;
+      }
+
+      // 2) Lista fija declarada
       if (KNOWN_PUBLIC_FILES[slug]?.length) {
         const list = KNOWN_PUBLIC_FILES[slug].map(name => `/services/${slug}/${name}`);
         if (!cancelled) {
@@ -120,7 +153,9 @@ function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
         }
         return;
       }
-      const result = await probePublic(slug, { maxN, exts });
+
+      // 3) Descubrimiento paralelo
+      const result = await probePublicParallel(slug, { maxN, exts });
       if (!cancelled) {
         discoveryCache.set(slug, result);
         setUrls(result);
@@ -135,13 +170,7 @@ function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
 /* =================== UI helpers =================== */
 function Tile({ url, alt, eager = false, contain = false, tweak = {} }) {
   if (!url) return null;
-  const {
-    shiftY = 0,  // % vertical (negativo = sube)
-    shiftX = 0,  // % horizontal
-    zoom   = 1,  // 1 = igual
-    contain: containOverride
-  } = tweak || {};
-
+  const { shiftY = 0, shiftX = 0, zoom = 1, contain: containOverride } = tweak || {};
   const useContain = typeof containOverride === 'boolean' ? containOverride : contain;
   const transformNeeded = shiftX || shiftY || zoom !== 1;
 
@@ -152,6 +181,7 @@ function Tile({ url, alt, eager = false, contain = false, tweak = {} }) {
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
+        fetchpriority={eager ? 'high' : 'auto'}
         draggable={false}
         className={
           useContain
