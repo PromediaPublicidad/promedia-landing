@@ -46,7 +46,7 @@ const GALLERY_TWEAKS = {
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
   estampados: {
-    "1.jpeg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
+    "1.jpg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
     "4.jpg": { shiftY: 0 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: 0 },
   },
   btl: {
