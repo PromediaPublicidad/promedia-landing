@@ -6,7 +6,7 @@ import { Palette, Printer, Building2, FileText, Play, Shirt, Rocket, Smartphone,
 /* =================== Catálogo exacto (sin 404) =================== */
 /* Si pones un index.json por categoría, lo lee primero: /public/services/<slug>/index.json */
 const KNOWN_PUBLIC_FILES = {
-  // Dejas aquí listas fijas si quieres “pinnear” el orden. Si hay index.json, tiene prioridad.
+  // “Pineadas” (si hay index.json, tiene prioridad)
   branding: ["1.jpeg","2.jpg","3.jpg","4.jpg","5.jpg","6.jpg"],
 };
 
@@ -14,6 +14,9 @@ const DEFAULT_EXTS = ['webp','jpg','jpeg','png','JPG','PNG'];
 const EXT_ORDER = {
   branding: ['jpg','jpeg','png','JPG'],
 };
+
+// Fallbacks tolerantes a mayúsculas/formatos
+const FALLBACK_EXTS = ['jpg','jpeg','JPG','png','PNG','webp'];
 
 /* ============ Ajustes visuales por imagen (shift/zoom) ============ */
 const GALLERY_TWEAKS = {
@@ -73,19 +76,45 @@ function getTileTweaks(slug, url, index) {
   return map[name] ?? map[index] ?? {};
 }
 
+/* =================== Resolución de URL real =================== */
+// Devuelve la mejor URL existente probando variantes de extensión/case
+async function resolveBest(url) {
+  try {
+    const cut = url.lastIndexOf('/');
+    const path = url.slice(0, cut + 1);
+    const file = url.slice(cut + 1);
+    const dot  = file.lastIndexOf('.');
+    const name = dot > -1 ? file.slice(0, dot) : file;
+    const ext  = dot > -1 ? file.slice(dot + 1) : '';
+
+    // 1) prueba original
+    try { const r = await fetch(url, { method: 'HEAD' }); if (r.ok) return url; } catch {}
+
+    // 2) prueba variantes
+    for (const e of [ext, ...FALLBACK_EXTS]) {
+      if (!e) continue;
+      const u = `${path}${name}.${e}`;
+      try { const r = await fetch(u, { method: 'HEAD' }); if (r.ok) return u; } catch {}
+    }
+  } catch {}
+  return null;
+}
+
 /* =================== Descubrimiento optimizado =================== */
-/** 1) Lee /services/<slug>/index.json si existe (más rápido y 100% exacto) */
 async function tryManifest(slug) {
   try {
     const res = await fetch(`/services/${slug}/index.json`, { method: 'GET', cache: 'force-cache' });
     if (!res.ok) return null;
     const list = await res.json();
     if (Array.isArray(list) && list.length) {
-      // admite strings o {file:"x.jpg"}
-      return list.map(item => {
+      const raw = list.map(item => {
         const name = typeof item === 'string' ? item : item?.file;
         return name ? `/services/${slug}/${name}` : null;
       }).filter(Boolean);
+
+      // Valida cada entrada y corrige extensión/case si hiciera falta
+      const resolved = await Promise.all(raw.map(u => resolveBest(u)));
+      return resolved.filter(Boolean);
     }
     return null;
   } catch {
@@ -93,13 +122,11 @@ async function tryManifest(slug) {
   }
 }
 
-/** 2) Fallback: HEAD paralelo (rápido, con corte cuando hay huecos) */
 async function probePublicParallel(slug, { maxN = 12, exts = ['jpg','jpeg','png'] } = {}) {
   const urls = [];
   let misses = 0;
 
   for (let n = 1; n <= maxN; n++) {
-    // probá todas las extensiones en paralelo y quédate con la primera que exista
     const checks = exts.map(ext => {
       const url = `/services/${slug}/${n}.${ext}`;
       return fetch(url, { method: 'HEAD' }).then(r => (r.ok ? url : null)).catch(() => null);
@@ -108,13 +135,8 @@ async function probePublicParallel(slug, { maxN = 12, exts = ['jpg','jpeg','png'
     const results = await Promise.allSettled(checks);
     const hit = results.map(r => (r.status === 'fulfilled' ? r.value : null)).find(Boolean);
 
-    if (hit) {
-      urls.push(hit);
-      misses = 0; // reinicia misses después de un acierto (permite huecos aislados)
-    } else {
-      misses++;
-      if (misses >= 2) break; // dos seguidos sin encontrar → asumimos fin
-    }
+    if (hit) { urls.push(hit); misses = 0; }
+    else { if (++misses >= 2) break; }
   }
   return urls;
 }
@@ -127,39 +149,27 @@ function usePublicGallery(slug, { maxN = 12, exts = DEFAULT_EXTS } = {}) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // 0) Si ya hay caché, úsala (evita nuevos HEADs)
+      // Cache
       const cached = discoveryCache.get(slug);
-      if (cached?.length) {
-        setUrls(cached);
-        return;
-      }
+      if (cached?.length) { setUrls(cached); return; }
 
-      // 1) Manifest tiene prioridad (si existe)
+      // 1) Manifest (prioridad)
       const manifest = await tryManifest(slug);
-      if (manifest && manifest.length) {
-        if (!cancelled) {
-          discoveryCache.set(slug, manifest);
-          setUrls(manifest);
-        }
+      if (manifest?.length) {
+        if (!cancelled) { discoveryCache.set(slug, manifest); setUrls(manifest); }
         return;
       }
 
-      // 2) Lista fija declarada
+      // 2) Lista fija
       if (KNOWN_PUBLIC_FILES[slug]?.length) {
         const list = KNOWN_PUBLIC_FILES[slug].map(name => `/services/${slug}/${name}`);
-        if (!cancelled) {
-          discoveryCache.set(slug, list);
-          setUrls(list);
-        }
+        if (!cancelled) { discoveryCache.set(slug, list); setUrls(list); }
         return;
       }
 
-      // 3) Descubrimiento paralelo
+      // 3) Descubrimiento
       const result = await probePublicParallel(slug, { maxN, exts });
-      if (!cancelled) {
-        discoveryCache.set(slug, result);
-        setUrls(result);
-      }
+      if (!cancelled) { discoveryCache.set(slug, result); setUrls(result); }
     })();
     return () => { cancelled = true; };
   }, [slug, maxN, exts]);
@@ -174,14 +184,34 @@ function Tile({ url, alt, eager = false, contain = false, tweak = {} }) {
   const useContain = typeof containOverride === 'boolean' ? containOverride : contain;
   const transformNeeded = shiftX || shiftY || zoom !== 1;
 
+  // Reintentos por extensión si el <img> falla
+  const { basePath, name, candidates } = useMemo(() => {
+    const cut = url.lastIndexOf('/');
+    const path = url.slice(0, cut + 1);
+    const file = url.slice(cut + 1);
+    const dot  = file.lastIndexOf('.');
+    const fname = dot > -1 ? file.slice(0, dot) : file;
+    const fext  = dot > -1 ? file.slice(dot + 1) : '';
+    const list  = [fext, ...FALLBACK_EXTS].filter((v, i, a) => v && a.indexOf(v) === i);
+    return { basePath: path, name: fname, candidates: list };
+  }, [url]);
+  const [attempt, setAttempt] = useState(0);
+  const src = `${basePath}${name}.${candidates[Math.min(attempt, candidates.length - 1)]}`;
+
+  function handleError() {
+    if (attempt < candidates.length - 1) setAttempt(a => a + 1);
+  }
+
   return (
     <div className="aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-white/10 bg-gray-200">
       <img
-        src={url}
+        src={src}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
         fetchpriority={eager ? 'high' : 'auto'}
+        sizes="(max-width: 768px) 50vw, 33vw"
+        onError={handleError}
         draggable={false}
         className={
           useContain
@@ -209,7 +239,7 @@ const servicios = [
   { icon: <Shirt size={28} />,     title: 'Estampados térmicos',      desc: 'Textiles y materiales rígidos.',          slug: 'estampados' },
   { icon: <Rocket size={28} />,    title: 'Activaciones BTL',         desc: 'Azafatas, modelos y eventos.',            slug: 'btl' },
   { icon: <Smartphone size={28} />,title: 'Redes Sociales',           desc: 'Gestión de contenido y estrategia.',      slug: 'redes' },
-  { icon: <Target size={28} />,    title: 'Soluciones Personalizadas',desc: 'A tu medida.',                             slug: 'personalizados' },
+  { icon: <Target size={28} />,    title: 'Soluciones Personalizadas',desc: 'A tu medida.',                            slug: 'personalizados' },
 ];
 
 const meta = {
