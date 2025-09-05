@@ -3,25 +3,34 @@ import { Resend } from 'resend';
 import formidable from 'formidable';
 import { readFile } from 'fs/promises';
 
-// Vercel: desactiva el body parser para poder leer multipart
 export const config = {
-  api: {
-    bodyParser: false,
-  },
+  api: { bodyParser: false }, // necesario para multipart/form-data
 };
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.FROM || 'Promedia <onboarding@resend.dev>'; // usa tu dominio verificado si ya lo tienes
-const TO   = process.env.TO   || 'promarketing@promediapublicidad.com'; // cámbialo si quieres
+const FROM = process.env.FROM || 'Promedia <onboarding@resend.dev>';
+const TO   = process.env.TO   || 'promarketing@promediapublicidad.com';
 
 function parseForm(req) {
   return new Promise((resolve, reject) => {
-    const form = formidable({ multiples: false, maxFileSize: 10 * 1024 * 1024 }); // 10MB
-    form.parse(req, async (err, fields, files) => {
+    const form = formidable({
+      multiples: false,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      allowEmptyFiles: false,
+      keepExtensions: true,
+    });
+    form.parse(req, (err, fields, files) => {
       if (err) return reject(err);
       resolve({ fields, files });
     });
   });
+}
+
+// Normaliza file: puede venir como array o undefined
+function getSingleFile(fileOrArray) {
+  if (!fileOrArray) return null;
+  if (Array.isArray(fileOrArray)) return fileOrArray[0] || null;
+  return fileOrArray;
 }
 
 export default async function handler(req, res) {
@@ -40,14 +49,15 @@ export default async function handler(req, res) {
     const portfolio = (fields.portfolio || '').toString();
     const message = (fields.message || '').toString();
 
-    // Adjuntos (opcional)
-    let attachments = [];
-    const cv = files.cv;
-    if (cv && cv.filepath) {
-      const buf = await readFile(cv.filepath);
+    // === ADJUNTO (Buffer, no base64) ===
+    const cvRaw = getSingleFile(files.cv);
+    const attachments = [];
+    if (cvRaw?.filepath) {
+      const buf = await readFile(cvRaw.filepath);        // <-- Buffer real
       attachments.push({
-        filename: cv.originalFilename || 'cv.pdf',
-        content: buf.toString('base64'),
+        filename: cvRaw.originalFilename || 'cv.pdf',
+        content: buf,                                     // <-- Buffer (no string)
+        contentType: cvRaw.mimetype || undefined,         // opcional, ayuda a algunos clientes
       });
     }
 
@@ -81,7 +91,7 @@ export default async function handler(req, res) {
       attachments: attachments.length ? attachments : undefined,
     });
 
-    if (resp.error) {
+    if (resp?.error) {
       return res.status(500).json({ ok: false, error: 'Error de Resend', details: resp.error });
     }
 
