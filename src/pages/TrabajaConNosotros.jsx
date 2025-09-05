@@ -3,6 +3,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 const brand = "#167c88";
+const MAX_MB = 10;
+const ACCEPT = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
 function Label({ htmlFor, children }) {
   return (
@@ -52,40 +58,71 @@ function TextArea({ id, rows = 5, ...props }) {
   );
 }
 
-function FileUpload({ id, onChange }) {
-  return (
-    <div className="mt-2">
-      <label
-        htmlFor={id}
-        className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-slate-300 bg-white/70 px-4 py-3 text-slate-700 hover:border-slate-400 hover:bg-white transition"
-      >
-        <span className="inline-flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M14.59 2.59a2 2 0 012.82 0l4 4a2 2 0 010 2.82l-9 9A5.002 5.002 0 016 21H5a1 1 0 110-2h1a3 3 0 002.12-.88l9-9-2.12-2.12-6.88 6.88a1 1 0 11-1.41-1.41l7.88-7.88z"/>
-          </svg>
-          <span className="font-medium">Adjuntar CV (PDF / DOCX)</span>
-        </span>
-        <span className="text-xs text-slate-500">Tamaño máx. 10MB</span>
-      </label>
-      {/* añade name="cv" si ya conectaste el backend */}
-      <input id={id} name="cv" type="file" className="sr-only" onChange={onChange} />
-    </div>
-  );
+function bytesToMb(b) {
+  return (b / (1024 * 1024)).toFixed(1);
 }
 
 export default function TrabajaConNosotros() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
+  const [cvFile, setCvFile] = useState(null);
+  const [cvInfo, setCvInfo] = useState("");
+
+  function onCvChange(e) {
+    setError("");
+    const f = e.target.files?.[0];
+    if (!f) {
+      setCvFile(null);
+      setCvInfo("");
+      return;
+    }
+    if (!ACCEPT.includes(f.type)) {
+      setError("Formato no permitido. Usa PDF o DOCX.");
+      e.target.value = "";
+      return;
+    }
+    if (f.size > MAX_MB * 1024 * 1024) {
+      setError(`El archivo supera ${MAX_MB} MB (${bytesToMb(f.size)} MB).`);
+      e.target.value = "";
+      return;
+    }
+    setCvFile(f);
+    setCvInfo(`${f.name} • ${bytesToMb(f.size)} MB`);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setError("");
     setSending(true);
-    // TODO: envía a tu backend o servicio de forms
-    await new Promise((r) => setTimeout(r, 900));
-    setSending(false);
-    setDone(true);
-    e.currentTarget.reset();
-    setTimeout(() => setDone(false), 2500);
+    setDone(false);
+
+    try {
+      const formEl = e.currentTarget;
+      const fd = new FormData(formEl);
+      // si el input hidden no trae el file por el Custom UI, lo inyectamos:
+      if (cvFile) fd.set("cv", cvFile, cvFile.name);
+
+      const res = await fetch("/api/apply", {
+        method: "POST",
+        body: fd, // multipart/form-data (el browser pone el boundary)
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "No se pudo enviar el formulario.");
+      }
+
+      setDone(true);
+      formEl.reset();
+      setCvFile(null);
+      setCvInfo("");
+      setTimeout(() => setDone(false), 3000);
+    } catch (err) {
+      setError(err.message || "Error al enviar.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -136,7 +173,7 @@ export default function TrabajaConNosotros() {
               <Input id="phone" name="phone" type="tel" placeholder="+507 ..." />
             </div>
 
-            {/* CAMBIO: Área -> Cargo */}
+            {/* Cargo */}
             <div>
               <Label htmlFor="area">Cargo al que aplicas</Label>
               <Select id="area" name="area" defaultValue="" required>
@@ -156,9 +193,49 @@ export default function TrabajaConNosotros() {
               <Input id="portfolio" name="portfolio" type="url" placeholder="https://..." />
             </div>
 
+            {/* CV */}
             <div className="sm:col-span-2">
               <Label htmlFor="cv">Currículum</Label>
-              <FileUpload id="cv" onChange={() => {}} />
+
+              <div className="mt-2">
+                <label
+                  htmlFor="cv"
+                  className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-slate-300 bg-white/70 px-4 py-3 text-slate-700 hover:border-slate-400 hover:bg-white transition"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M14.59 2.59a2 2 0 012.82 0l4 4a2 2 0 010 2.82l-9 9A5.002 5.002 0 016 21H5a1 1 0 110-2h1a3 3 0 002.12-.88l9-9-2.12-2.12-6.88 6.88a1 1 0 11-1.41-1.41l7.88-7.88z"/>
+                    </svg>
+                    <span className="font-medium">Adjuntar CV (PDF / DOCX)</span>
+                  </span>
+                  <span className="text-xs text-slate-500">Máx. {MAX_MB}MB</span>
+                </label>
+
+                {/* IMPORTANTE: name="cv" para el backend */}
+                <input
+                  id="cv"
+                  name="cv"
+                  type="file"
+                  className="sr-only"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={onCvChange}
+                />
+
+                {/* Estado del archivo */}
+                {cvInfo && (
+                  <div className="mt-2 text-sm text-slate-700 flex items-center gap-2">
+                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                    {cvInfo}
+                    <button
+                      type="button"
+                      onClick={() => { setCvFile(null); setCvInfo(""); }}
+                      className="ml-2 text-xs text-slate-500 hover:text-slate-700 underline"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="sm:col-span-2">
@@ -166,7 +243,7 @@ export default function TrabajaConNosotros() {
               <TextArea id="message" name="message" placeholder="Cuéntanos brevemente tu motivación, logros y metas…" />
             </div>
 
-            {/* Checkbox simple de consentimiento */}
+            {/* Consentimiento */}
             <div className="sm:col-span-2">
               <label className="inline-flex items-start gap-3 select-none">
                 <input
@@ -180,6 +257,18 @@ export default function TrabajaConNosotros() {
               </label>
             </div>
           </div>
+
+          {/* Mensajes */}
+          {error && (
+            <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 text-rose-800 px-4 py-3 text-sm">
+              {error}
+            </div>
+          )}
+          {done && (
+            <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-4 py-3 text-sm">
+              ¡Listo! Tu postulación fue enviada.
+            </div>
+          )}
 
           {/* Botón */}
           <div className="mt-6 flex items-center gap-4">
@@ -200,16 +289,9 @@ export default function TrabajaConNosotros() {
                 "Enviar Postulación"
               )}
             </button>
-
-            {done && (
-              <span className="text-sm font-medium text-[#167c88]">
-                ¡Listo! Te contactaremos si tu perfil encaja.
-              </span>
-            )}
           </div>
         </motion.form>
 
-        {/* Footer pequeño de la página */}
         <p className="mt-6 text-center text-xs text-slate-500">
           *Este formulario no solicita disponibilidad, años de experiencia, modalidad preferida ni pretensión salarial.
         </p>
