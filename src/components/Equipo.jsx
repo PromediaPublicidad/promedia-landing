@@ -14,8 +14,8 @@ const MEMBERS = [
   { id: 1,  name: "Bashar Yassin",      role: "CEO",                      category: "CEO",        img: "/team/team1.png" },
 
   // Asesoras
-  { id: 2,  name: "Gina Alexio",        role: "Ventas y Logística",       category: "Asesoras",   img: "/team/team2.png" },
-  { id: 3,  name: "Claudia Collantes",  role: "Ventas y Logística",       category: "Asesoras",   img: "/team/team3.png" },
+  { id: 2,  name: "Gina Alexio",        role: "Logística",       category: "Logística",   img: "/team/team2.png" },
+  { id: 3,  name: "Claudia Collantes",  role: "Logística",       category: "Logística",   img: "/team/team3.png" },
 
   // Marketing
   { id: 6,  name: "Giulianna Santa",        role: "Project Manager",          category: "Marketing",  img: "/team/team6.png" },
@@ -38,7 +38,7 @@ const MEMBERS = [
   { id: 15, name: "Xiomara Sevilla",    role: "Personal de Limpieza",     category: "Producción", img: "/team/team15.png" },
 ];
 
-const CATEGORIES = ["Gerencia", "Asesoras", "Marketing", "Producción"];
+const CATEGORIES = ["Gerencia", "Logística", "Marketing", "Producción"];
 
 /* ================ Tweaks (shiftY/zoom) ================ */
 /* shiftY en %: + mueve ABAJO, - mueve ARRIBA. zoom <1 aleja. */
