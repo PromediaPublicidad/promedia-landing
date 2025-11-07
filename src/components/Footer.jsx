@@ -96,6 +96,8 @@ export default function Footer() {
           © {new Date().getFullYear()} Promedia. Todos los derechos reservados.
         </div>
       </div>
+
+      <img src="https://tracker.metricool.com/c3po.jpg?hash=910e0ee13d9d27019227d3e002bfbcb5"/>
     </footer>
   );
 }
