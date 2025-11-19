@@ -41,8 +41,8 @@ const GALLERY_TWEAKS = {
     "4.jpg": { shiftY: -13 }, "5.jpg": { shiftY: 0 }, "6.jpg": { shiftY: -12 },
   },
   audiovisual: {
-    "1.jpg": { shiftY: 0 }, "2.jpg": { shiftY: -15 }, "3.jpg": { shiftY: -15 },
-    "4.jpg": { shiftY: -12 }, "5.jpg": { shiftY: -26 }, "6.jpg": { shiftY: -26 },
+    "1.webp": { shiftY: 0 }, "2.webp": { shiftY: -15 }, "3.webp": { shiftY: -15 },
+    "4.webp": { shiftY: -12 }, "5.webp": { shiftY: -26 }, "6.webp": { shiftY: -26 },
   },
   instalaciones: {
     "1.jpg": { shiftY: 0 }, "2.jpg": { shiftY: 0 }, "3.jpg": { shiftY: 0 },
