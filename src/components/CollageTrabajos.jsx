@@ -4,25 +4,25 @@ import { motion } from "framer-motion";
 
 // Repite o mezcla a tu gusto. Se muestran completas (object-contain)
 const ROW1 = [
-  "/works/work1.jpg",
-  "/works/work2.jpg",
-  "/works/work3.jpg",
-  "/works/work4.jpg",
-  "/works/work5.jpg",
+  "/works/work1.webp",
+  "/works/work2.webp",
+  "/works/work3.webp",
+  "/works/work4.webp",
+  "/works/work5.webp",
 ];
 const ROW2 = [
-  "/works/work6.jpg",
-  "/works/work7.jpg",
-  "/works/work8.jpg",
-  "/works/work9.jpg",
-  "/works/work10.jpg",
+  "/works/work6.webp",
+  "/works/work7.webp",
+  "/works/work8.webp",
+  "/works/work9.webp",
+  "/works/work10.webp",
 ];
 const ROW3 = [
-  "/works/work11.jpg",
-  "/works/work12.jpg",
-  "/works/work13.jpg",
-  "/works/work14.jpg",
-  "/works/work15.jpg",
+  "/works/work11.webp",
+  "/works/work12.webp",
+  "/works/work13.webp",
+  "/works/work14.webp",
+  "/works/work15.webp",
 ];
 
 /** Strip: marquee con Framer (loop infinito), sin mask-image */
