@@ -41,6 +41,7 @@ export default function App() {
 
   // Controla la visibilidad del logo flotante en el home
   const [scrollY, setScrollY] = useState(0);
+
   useEffect(() => {
     if (!isHome) return;
     const onScroll = () => setScrollY(window.scrollY || 0);
@@ -54,8 +55,13 @@ export default function App() {
   const showFloating = isHome && scrollY <= HIDE_AT;
 
   return (
-    <>
-      {/* Header fijo (tu Header ya se oculta al inicio del home y aparece al scrollear) */}
+    <div
+      className={[
+        "font-body text-neutral-950 bg-white min-h-screen w-full overflow-x-clip",
+        !isHome ? "route-internal" : "",
+      ].join(" ")}
+    >
+      {/* Header fijo */}
       <Header />
 
       {/* Logo flotante SOLO en home y SOLO antes de que aparezca el header */}
@@ -63,7 +69,7 @@ export default function App() {
         {showFloating && (
           <motion.img
             key="float-logo"
-            src="/logos/logo.png"         // si prefieres usa /logos/Pro.png
+            src="/logos/logo.png" // si prefieres usa /logos/Pro.png
             alt="Promedia"
             className="fixed z-50 top-0 left-1/2 -translate-x-1/2 pointer-events-none select-none"
             initial={{ opacity: 0, y: -16 }}
@@ -82,6 +88,6 @@ export default function App() {
         {/* alias opcional que ya usas en el header */}
         <Route path="/unete" element={<TrabajaConNosotros />} />
       </Routes>
-    </>
+    </div>
   );
 }

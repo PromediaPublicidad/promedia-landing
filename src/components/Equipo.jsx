@@ -19,10 +19,8 @@ const MEMBERS = [
 
   // Marketing
   { id: 6,  name: "Giulianna Santa",        role: "Project Manager",          category: "Marketing",  img: "/team/team6.png" },
-  { id: 7,  name: "Dasly Peralta",      role: "Community Manager",        category: "Marketing",  img: "/team/team7.png" },
   { id: 8,  name: "Dionmer Esaa",       role: "Productor Audiovisual",    category: "Marketing",  img: "/team/team8.png" },
   { id: 4,  name: "Thais Soto",         role: "Diseñadora Grafica",       category: "Marketing",  img: "/team/team4.png" },
-  { id: 5,  name: "Yerimar Ryfkogel",   role: "Diseñadora Grafica",       category: "Marketing",  img: "/team/team5.png" },
 
   // Gerencia (nuevo)
   { id: 9,  name: "Cristel Brassfield", role: "Administradora",           category: "Gerencia",   img: "/team/team9.png" },
